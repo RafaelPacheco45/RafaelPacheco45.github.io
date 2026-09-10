@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script>
+    (function () {
+      try {
+        var pref = localStorage.getItem("aa_view");
+        var ua = navigator.userAgent || "";
+        var isMobileUA = /Android|iPhone|iPod|IEMobile|BlackBerry|Opera Mini|Windows Phone/i.test(ua);
+        var isTouchNarrow = (("ontouchstart" in window) || navigator.maxTouchPoints > 0) && window.innerWidth <= 820;
+        var wantsMobile = pref ? pref === "mobile" : (isMobileUA || isTouchNarrow);
+        if (wantsMobile) location.replace("index-mobile.html" + location.search + location.hash);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="alternate" media="only screen and (max-width: 820px)" href="index-mobile.html" />
+  <meta name="description" content="Achado Agora selects real deals from Mercado Livre, Amazon and Shopee. Objective comparison, reference price and a direct link to the store." />
+  <meta name="theme-color" content="#ff5a1f" />
+  <meta property="og:title" content="Achado Agora — find the best option to buy" />
+  <meta property="og:description" content="Search, compare prices and find the best deals from Brazil's top stores, all in one place." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/img/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <title>Achado Agora — find the best option to buy</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css?v=9" />
+</head>
+<body data-page="home">
+  <a class="skip" href="busca.html">Go to deals</a>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></svg>
+        </span>
+        Achado<span>Agora</span>
+      </a>
+      <div class="nav-cluster" id="navLinks">
+        <nav class="nav-links">
+          <a href="index.html#ofertas" aria-current="page">Deals</a>
+          <a href="comparativos.html">Comparisons</a>
+          <a href="busca.html">Search</a>
+          <a href="index.html#como-funciona">How it works</a>
+          <a href="sobre.html">Method</a>
+        </nav>
+        <div class="topbar-actions">
+          <a class="icon-link" href="favoritos.html">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
+            Favorites
+          </a>
+          <button type="button" class="btn-line" data-open-profile data-profile-label="Sign in">Sign in</button>
+          <button type="button" class="btn primary small" data-open-profile data-profile-label="Create account">Create account</button>
+        </div>
+      </div>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero-banner-section">
+      <div class="hero-banner-wrap">
+        <img src="assets/img/hero-banner.jpg" width="2137" height="736" alt="Person smiling while using a phone, with the message &quot;Great shopping starts here!&quot; and the badge &quot;Shop smarter: for a better everyday life&quot;." />
+        <div class="hero-overlay">
+          <div class="hero-tagline">
+            <h2>More savings on your choices</h2>
+            <p>Compare, decide, buy better.</p>
+            <span class="tag-bar" aria-hidden="true"></span>
+          </div>
+          <div class="hero-main">
+            <h1>Find the best option<br /><span>to buy</span></h1>
+            <p class="lead">Search, compare prices and find the best deals from Brazil's top stores, all in one place.</p>
+            <form class="hero-search" id="heroSearchForm" role="search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+              <input id="heroSearchInput" type="search" placeholder="Type what you want to buy..." aria-label="Search product" autocomplete="off" />
+              <button class="btn primary" type="submit">Search</button>
+            </form>
+            <div class="feature-row">
+              <div class="feature-item">
+                <span class="feature-icon" aria-hidden="true"><svg width="18" height="18" viewBox="-1 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg></span>
+                <span><strong>Quick comparison</strong><span>See multiple stores in seconds</span></span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.6 12.6 12.6 20.6a2 2 0 0 1-2.8 0l-6.4-6.4a2 2 0 0 1 0-2.8L11.4 3.4A2 2 0 0 1 12.8 3H19a2 2 0 0 1 2 2v6.2a2 2 0 0 1-.4 1.4z"/><circle cx="15.5" cy="7.5" r="1.5" fill="var(--accent-soft)"/></svg></span>
+                <span><strong>Best price</strong><span>Find the ideal deal</span></span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 1.8 24 24" fill="currentColor" stroke="none"><path d="M3 7h11v10H3z"/><path d="M14 11h4l3 3v3h-7z"/><circle cx="7" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg></span>
+                <span><strong>Shipping</strong><span>Compare timelines and conditions</span></span>
+              </div>
+              <div class="feature-item">
+                <span class="feature-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8l-6.2 3.2L7 14.2l-5-4.9 6.9-1L12 2z"/></svg></span>
+                <span><strong>Real reviews</strong><span>Based on actual buyers</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="home-ad-rail-layout" aria-label="Advertising and featured comparison">
+      <aside class="ad-slot ad-slot-rail" aria-label="Left side advertising" data-ad-slot-key="homeRailLeft" data-ad-format="vertical">
+        <span>Advertising</span>
+        <small>Side space after the banner.</small>
+      </aside>
+
+      <div class="home-main-lane">
+        <section class="section" id="comparativo-destaque">
+          <div class="compare-head">
+            <div>
+              <p class="eyebrow">Featured comparison</p>
+              <h2>Which iPhone 15 should you buy?</h2>
+              <p>We compared 3 real Mercado Livre listings by price and review score.</p>
+            </div>
+            <a class="compare-more" href="comparativos/qual-iphone-15-comprar-comparativo.html">See full comparison →</a>
+          </div>
+          <div class="compare-grid-h">
+            <article class="compare-card-h rank-1">
+              <span class="compare-rank"><em>1st</em> Best price and score</span>
+              <div class="compare-card-h-body">
+                <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">
+                  <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Blue - Excellent (Refurbished)" width="96" height="96" loading="lazy">
+                </a>
+                <div class="compare-card-h-info">
+                  <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Blue - Excellent (Refurbished)</a></h3>
+                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
+                  <span class="compare-rating">★ <strong>4.7</strong> (186 reviews)</span>
+                  <span class="compare-price">R$ 2.914,83</span>
+                  <span class="compare-best">✓ Lowest price in this comparison</span>
+                </div>
+              </div>
+              <a class="btn primary" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">View deal</a>
+            </article>
+            <article class="compare-card-h">
+              <span class="compare-rank"><em>2nd</em> Close alternative</span>
+              <div class="compare-card-h-body">
+                <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">
+                  <img src="https://http2.mlstatic.com/D_NQ_NP_634723-MLA95496999820_102025-O.webp" alt="Apple iPhone 15 128 GB Pink - Excellent (Refurbished)" width="96" height="96" loading="lazy">
+                </a>
+                <div class="compare-card-h-info">
+                  <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 128 GB Pink - Excellent (Refurbished)</a></h3>
+                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
+                  <span class="compare-rating">★ <strong>4.6</strong> (163 reviews)</span>
+                  <span class="compare-price">R$ 3.020,51</span>
+                </div>
+              </div>
+              <a class="btn outline" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">View deal</a>
+            </article>
+            <article class="compare-card-h">
+              <span class="compare-rank"><em>3rd</em> New and sealed</span>
+              <div class="compare-card-h-body">
+                <a class="compare-card-h-media" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">
+                  <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Blue" width="96" height="96" loading="lazy">
+                </a>
+                <div class="compare-card-h-info">
+                  <h3><a href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Blue</a></h3>
+                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
+                  <span class="compare-rating">★ <strong>4.8</strong> (11,862 reviews)</span>
+                  <span class="compare-price">R$ 3.890,89</span>
+                </div>
+              </div>
+              <a class="btn outline" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">View deal</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="editorial">
+          <div>
+            <p class="eyebrow">Comparison</p>
+            <h2>Which air fryer should you buy in 2026?</h2>
+            <p>Britânia BFR50 (5.5 L, family-size) vs. Electrolux EAF15 (3.2 L, compact). Two sizes, two calculations — no fluff.</p>
+            <div class="editorial-products">
+              <span class="editorial-product"><img src="assets/img/airfryer-mid.jpg" alt="Britânia BFR50 air fryer" width="40" height="40" loading="lazy" />Britânia BFR50 · R$ 228</span>
+              <span class="editorial-product"><img src="assets/img/airfryer-compact.jpg" alt="Electrolux EAF15 air fryer" width="40" height="40" loading="lazy" />Electrolux EAF15 · R$ 269,90</span>
+            </div>
+          </div>
+          <a class="btn primary" href="artigo.html">Read the comparison</a>
+        </section>
+
+        <section class="ad-slot ad-slot-wide" aria-label="Central advertising" data-ad-slot-key="homeTop" data-ad-format="horizontal">
+          <span>Advertising</span>
+          <small>Space for display network. Activate only after approval.</small>
+        </section>
+
+        <section class="section" id="ofertas">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Full showcase</p>
+              <h2>More deals to explore</h2>
+            </div>
+          </div>
+          <div class="grid" id="comparativosGrid">
+            <div class="empty">Loading comparisons…</div>
+          </div>
+        </section>
+
+        <section class="trust-bar" aria-label="Why trust Achado Agora">
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></span>
+            <div><strong>2+ million</strong><span>people have already saved with us</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <div><strong>100% free</strong><span>Compare prices without paying anything</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg></span>
+            <div><strong>Trusted stores</strong><span>Brazil's largest and safest</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+            <div><strong>Smarter shopping</strong><span>More savings for you</span></div>
+          </div>
+        </section>
+
+        <section class="ad-slot ad-slot-wide ad-slot-after-trust" aria-label="Advertising after the trust badges" data-ad-slot-key="homeAfterTrust" data-ad-format="horizontal">
+          <span>Advertising</span>
+          <small>Horizontal space after the trust badges.</small>
+        </section>
+
+        <section id="como-funciona">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">How it works</p>
+              <h2>From listing to checkout, no hidden shortcuts.</h2>
+            </div>
+          </div>
+          <div class="how">
+            <article>
+              <span>1</span>
+              <h3>We select</h3>
+              <p>Only products with strong sales volume, high ratings and prices that make sense make the cut — editorial criteria, not guesswork.</p>
+            </article>
+            <article>
+              <span>2</span>
+              <h3>You decide here</h3>
+              <p>Spec sheet, pros, cons and reference value. If it's not right for you, there's no magic button pushing the purchase.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <h3>The store closes the sale</h3>
+              <p>The click opens Mercado Livre, Amazon or Shopee. Shipping, stock and final price always come from there.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="faq">
+          <p class="eyebrow">Questions</p>
+          <h2>Before you click</h2>
+          <details open>
+            <summary>Do you sell the product?</summary>
+            <p>No. We're an editorial showcase. The purchase happens on the marketplace, under the store's own exchange policy.</p>
+          </details>
+          <details>
+            <summary>Is the price shown on the site the final price?</summary>
+            <p>No. It's a reference checked on the date shown for each deal. Coupons, shipping and stock can change at checkout.</p>
+          </details>
+          <details>
+            <summary>Why does the button say "view deal"?</summary>
+            <p>Because the destination is the store where the purchase is completed — the click just takes you there.</p>
+          </details>
+        </section>
+      </div>
+
+      <aside class="ad-slot ad-slot-rail" aria-label="Right side advertising" data-ad-slot-key="homeRailRight" data-ad-format="vertical">
+        <span>Advertising</span>
+        <small>Side space after the banner.</small>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <div class="brand">Achado<span>Agora</span></div>
+      <p>Editorial selection is not paid for by the showcase advertiser.</p>
+    </div>
+    <div>
+      <strong>Site</strong>
+      <ul>
+        <li><a href="index.html#ofertas">Deals</a></li>
+        <li><a href="comparativos.html">Comparisons</a></li>
+        <li><a href="busca.html">Search</a></li>
+        <li><a href="sobre.html">Method</a></li>
+        <li><a href="https://www.facebook.com/profile.php?id=61594174943230" target="_blank" rel="noopener">Facebook</a></li>
+      </ul>
+    </div>
+    <div>
+      <strong>Legal</strong>
+      <ul>
+        <li><a href="privacidade.html">Privacy</a></li>
+        <li><a href="termos.html">Terms</a></li>
+        <li><a href="mailto:contato@achadoagora.com.br">contato@achadoagora.com.br</a></li>
+        <li><a href="index-mobile.html" onclick="try{localStorage.setItem('aa_view','mobile')}catch(e){}">Mobile version</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <div class="cookie" id="cookieBox" role="dialog" aria-label="Cookies">
+    <p>We use cookies and pixels (when configured) to measure campaigns. Details in our <a href="privacidade.html">privacy policy</a>.</p>
+    <div class="cookie-actions">
+      <button class="btn primary" id="cookieOk" type="button">Ok</button>
+      <a class="btn ghost" href="privacidade.html">Read policy</a>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="profileModal" role="dialog" aria-label="Your account">
+    <div class="modal-card" id="profileModalBody"></div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

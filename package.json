@@ -1,0 +1,27 @@
+{
+  "name": "mercado-afiliado-mvp",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Automacao local para vitrine/blog de afiliados com navegador persistente.",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "worker": "node server/worker.js",
+    "login": "node tools/open-login.js",
+    "sync:products": "node tools/sync-config-products.js",
+    "assets:facebook": "node tools/generate-facebook-assets.js",
+    "build:public": "node tools/build-public-site.js",
+    "build:locales": "node tools/build-locale-site.js en es",
+    "diagnostics": "node tools/diagnostics.js",
+    "validate:public": "node tools/validate-public-site.js",
+    "verify": "npm run check && npm run diagnostics && npm run validate:public",
+    "check": "node --check server/index.js && node --check server/worker.js && node --check server/config.js && node --check server/db.js && node --check server/browser.js && node --check server/sitePublisher.js && node --check server/staticExport.js && node --check server/comparisonEngine.js && node --check server/comparisonPublisher.js && node --check server/shoppingSearchEngine.js && node --check server/lib/affiliate.js && node --check server/adapters/mercadoLivre.js && node --check server/adapters/lomadee.js && node --check server/adapters/googleAiMode.js && node --check server/adapters/shopee.js && node --check server/adapters/webReview.js && node --check server/adapters/facebook.js && node --check server/ai/geminiBrowser.js && node --check server/ai/comparisonPrompt.js && node --check tools/build-public-site.js && node --check tools/build-locale-site.js && node --check tools/generate-facebook-assets.js && node --check tools/sync-config-products.js && node --check tools/validate-public-site.js && node --check assets/app.js && node --check assets/app.en.js && node --check assets/app.es.js && node --check assets/config.js && node --check assets/config.en.js && node --check assets/config.es.js"
+  },
+  "dependencies": {
+    "playwright-core": "^1.55.0"
+  },
+  "devDependencies": {
+    "lucide-static": "^1.42.0"
+  }
+}

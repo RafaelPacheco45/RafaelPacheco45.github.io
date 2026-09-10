@@ -1,0 +1,270 @@
+window.SITE_CONFIG = {
+  "brand": "Achado Agora",
+  "tagline": "Verified deals. Click only on what's worth it.",
+  "siteUrl": "https://achadoagora.blog.br/en",
+  "contactEmail": "contato@achadoagora.com.br",
+  "priceCheckedOn": "2026-08-30",
+  "metaPixelId": "",
+  "ga4MeasurementId": "",
+  "adsenseClient": "ca-pub-7405848790023639",
+  "adsenseAutoAds": true,
+  "adsenseAdSlot": "",
+  "adsenseSlots": {
+    "display": "",
+    "homeRailLeft": "",
+    "homeTop": "",
+    "homeAfterTrust": "",
+    "homeRailRight": "",
+    "homeMobile": "",
+    "homeMobileAfterTrust": "",
+    "articleTop": "",
+    "offerTop": "",
+    "comparisonTop": "",
+    "comparisonMiddle": "",
+    "comparisonBottom": "",
+    "comparativosTop": "",
+    "comparativosBottom": "",
+    "buscaTop": ""
+  },
+  "affiliates": {
+    "mlMattTool": "",
+    "mlMattWord": "oz6w63o7",
+    "amazonTag": ""
+  },
+  "products": [
+    {
+      "id": "britania-bfr50",
+      "category": "home",
+      "badge": "Best value",
+      "featured": true,
+      "title": "Britânia BFR50 Air Fryer 5.5 L",
+      "brand": "Britânia",
+      "description": "Medium basket, 1,500 W and a 4.8 rating on Amazon. The most rational pick for everyday family cooking without paying oven-model prices.",
+      "why": "Real capacity for 3-4 people, simple operation, and the lowest price among the options that actually sell well.",
+      "image": "assets/img/airfryer-mid.jpg",
+      "price": 228,
+      "oldPrice": 349,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.8,
+      "reviewLabel": "very well rated",
+      "specs": [
+        "5.5 liters",
+        "1,500 W",
+        "80°C to 200°C",
+        "60-min timer"
+      ],
+      "pros": [
+        "Low price for the size",
+        "Easy to clean",
+        "Power suited to the basket"
+      ],
+      "cons": [
+        "Lighter finish",
+        "Coating may wear over time"
+      ],
+      "affiliateUrl": "https://meli.la/2sER8ud",
+      "updatedAt": "2026-08-20"
+    },
+    {
+      "id": "electrolux-eaf15",
+      "category": "home",
+      "badge": "Best compact",
+      "title": "Electrolux EAF15 Air Fryer 3.2 L",
+      "brand": "Electrolux",
+      "description": "Compact 1,400 W model, starting at R$ 269.90. Ideal for 1-2 people who want something quiet, fast, and easy to store.",
+      "why": "Takes up little space, heats up fast, and has 8 programs. The best entry point if your counter space is small.",
+      "image": "assets/img/airfryer-compact.jpg",
+      "price": 269.9,
+      "oldPrice": 349,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.8,
+      "reviewLabel": "4.8 on Amazon",
+      "specs": [
+        "3.2 liters",
+        "1,400 W",
+        "8 pre-set recipes",
+        "60-min timer"
+      ],
+      "pros": [
+        "Compact and quiet",
+        "Simple to clean",
+        "Brand with wide support network"
+      ],
+      "cons": [
+        "Small basket for a family",
+        "Non-stick coating has occasional complaints"
+      ],
+      "affiliateUrl": "https://meli.la/2PR2PgC",
+      "updatedAt": "2026-08-20"
+    },
+    {
+      "id": "kingston-nv3",
+      "category": "tech",
+      "badge": "Upgrade you can feel",
+      "title": "Kingston NV3 1 TB NVMe PCIe 4.0 SSD",
+      "brand": "Kingston",
+      "description": "M.2 2280, read speeds up to 6,000 MB/s. It's the best-selling SSD in its category on Mercado Livre — the cheapest upgrade for a slow PC or laptop.",
+      "why": "Swapping HDD/SATA for a 1 TB NVMe changes boot times, gaming, and editing. Check the current price on the listing; it fluctuates a lot.",
+      "image": "assets/img/ssd.jpg",
+      "price": 429,
+      "oldPrice": 549,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.9,
+      "reviewLabel": "+50k sold",
+      "specs": [
+        "1 TB",
+        "PCIe 4.0 x4",
+        "6,000 MB/s read",
+        "M.2 2280 form factor"
+      ],
+      "pros": [
+        "Huge sales volume",
+        "Gen4 speed",
+        "Simple installation"
+      ],
+      "cons": [
+        "Price fluctuates week to week",
+        "Laptop needs a free NVMe slot"
+      ],
+      "affiliateUrl": "https://meli.la/19EnuZu",
+      "updatedAt": "2026-08-30"
+    },
+    {
+      "id": "echo-pop",
+      "category": "tech",
+      "badge": "Smart home",
+      "title": "Amazon Echo Pop with Alexa",
+      "brand": "Amazon",
+      "description": "The cheapest Alexa that's still worth it. Bedroom-size sound, routines, timers, and smart lights — without paying Echo Dot prices.",
+      "why": "R$ 379 on Amazon. If the goal is voice commands and basic automation, the Pop covers it. Go for the Dot 5 only if music is the priority.",
+      "image": "assets/img/echo.jpg",
+      "price": 379,
+      "oldPrice": 449,
+      "store": "Amazon",
+      "storeKey": "amazon",
+      "rating": 4.8,
+      "reviewLabel": "76k reviews",
+      "specs": [
+        "Alexa in Portuguese",
+        "2.4 & 5 GHz Wi-Fi",
+        "Matter compatible",
+        "sound for small rooms"
+      ],
+      "pros": [
+        "Lowest-cost way into Alexa",
+        "Set up in minutes",
+        "Huge skills ecosystem"
+      ],
+      "cons": [
+        "Limited sound for a living room",
+        "No temperature sensor like the Dot 5"
+      ],
+      "affiliateUrl": "https://www.amazon.com.br/Echo-Pop-Cor-Preta/dp/B09WXVH7WK",
+      "updatedAt": "2026-08-30"
+    },
+    {
+      "id": "havit-h2002d",
+      "category": "games",
+      "badge": "Most requested",
+      "title": "Havit H2002d Gaming Headset",
+      "brand": "Havit",
+      "description": "The wired headset that keeps selling on Mercado Livre. Comfortable, decent mic, and entry-level price — no unnecessary RGB.",
+      "why": "For anyone gaming on PC or console who doesn't want to spend on wireless. Check the P2 + USB plug on the listing.",
+      "image": "assets/img/headset.jpg",
+      "price": 139,
+      "oldPrice": 199,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.8,
+      "reviewLabel": "+1,000 sold",
+      "specs": [
+        "over-ear",
+        "flexible mic",
+        "P2 plug",
+        "large earpads"
+      ],
+      "pros": [
+        "Low cost",
+        "Comfortable for long sessions",
+        "Easy to find replacement parts"
+      ],
+      "cons": [
+        "Sound isn't audiophile-grade",
+        "Cable can get in the way on a laptop"
+      ],
+      "affiliateUrl": "https://meli.la/1NUPWbi",
+      "updatedAt": "2026-08-30"
+    },
+    {
+      "id": "controle-xbox",
+      "category": "games",
+      "badge": "Gold standard",
+      "title": "Xbox Series Wireless Controller",
+      "brand": "Xbox",
+      "description": "The controller that works on Xbox, PC, and cloud gaming. If you play across more than one screen, this is the peripheral that disappoints the least.",
+      "why": "Better ergonomics and triggers than generic pads. Worth seeking out the Full/Amazon listing with an invoice.",
+      "image": "assets/img/controle.jpg",
+      "price": 399,
+      "oldPrice": 499,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.8,
+      "reviewLabel": "official item",
+      "specs": [
+        "Bluetooth / 2.4 GHz",
+        "PC and Xbox",
+        "textured triggers",
+        "USB-C"
+      ],
+      "pros": [
+        "Real compatibility",
+        "Better build than generics",
+        "Easy resale"
+      ],
+      "cons": [
+        "Cheap generics can confuse the search",
+        "Price rises during console promos"
+      ],
+      "affiliateUrl": "https://meli.la/2Z7Js2R",
+      "updatedAt": "2026-08-30"
+    },
+    {
+      "id": "teclado-mecanico",
+      "category": "games",
+      "badge": "Setup upgrade",
+      "title": "Compact Mechanical Keyboard",
+      "brand": "Editor's pick",
+      "description": "Swap membrane for a mechanical 75%/TKL board. The best value for anyone who types and games on the same desk without giving up the whole surface.",
+      "why": "We filter listings by switch type (red/brown), anti-ghosting, and seller rating. Open the listing and confirm the switch before checking out.",
+      "image": "assets/img/teclado.jpg",
+      "price": 189,
+      "oldPrice": 279,
+      "store": "Mercado Livre",
+      "storeKey": "mercadolivre",
+      "rating": 4.7,
+      "reviewLabel": "editor's choice",
+      "specs": [
+        "mechanical",
+        "compact layout",
+        "USB-C on several models",
+        "anti-ghosting"
+      ],
+      "pros": [
+        "Better typing and gaming feel",
+        "Takes up less desk space",
+        "Accessible price range"
+      ],
+      "cons": [
+        "Switch varies between listings",
+        "Cheap RGB gets old fast"
+      ],
+      "affiliateUrl": "https://meli.la/2VimjJJ",
+      "updatedAt": "2026-08-30"
+    }
+  ],
+  "staticProductPages": true,
+  "staticProductPagesBase": "ofertas"
+};

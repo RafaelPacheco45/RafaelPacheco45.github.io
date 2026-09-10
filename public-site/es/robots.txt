@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://achadoagora.blog.br/es/sitemap.xml

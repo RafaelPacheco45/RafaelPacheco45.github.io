@@ -1,0 +1,16 @@
+node_modules/
+data/*.db
+data/*.db-*
+data/runtime/
+data/chrome-profile/
+data/manual-login.json
+*.log
+.env
+dist/
+.openai/
+public-site.zip
+achado-agora-site.zip
+*.tgz
+tools/__pycache__/
+tools/_*.png
+tools/pixel_*.py

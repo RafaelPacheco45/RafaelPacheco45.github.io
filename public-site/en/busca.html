@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Search for a product and see the comparison with real prices and reviews from buyers, made by Achado Agora." />
+  <meta name="theme-color" content="#09090b" />
+  <meta property="og:title" content="Search comparisons — Achado Agora" />
+  <title>Search comparisons — Achado Agora</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <meta name="google-adsense-account" content="ca-pub-7405848790023639" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7405848790023639" crossorigin="anonymous" data-aa-adsense="1"></script>
+  <link rel="alternate" hreflang="pt-BR" href="https://achadoagora.blog.br/busca.html" data-aa-hreflang="1" />
+  <link rel="alternate" hreflang="en" href="https://achadoagora.blog.br/en/busca.html" />
+  <link rel="alternate" hreflang="es" href="https://achadoagora.blog.br/es/busca.html" />
+  <link rel="alternate" hreflang="x-default" href="https://achadoagora.blog.br/busca.html" />
+</head>
+<body data-page="busca">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">Achado<span>Agora</span></a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html#ofertas">Deals</a>
+        <a href="comparativos.html">Comparisons</a>
+        <a href="busca.html" aria-current="page">Search</a>
+        <a href="sobre.html">Method</a>
+      </nav>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks">Menu</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero busca-hero">
+      <div>
+        <p class="eyebrow">Comparison search</p>
+        <h1>Which product do you want to compare today?</h1>
+        <p class="lead">Type what you're looking for. We show the comparisons with real prices and reviews we've already published — no fluff, no defects hidden in what we recommend.</p>
+        <form class="busca-form" id="buscaForm" role="search">
+          <input id="buscaInput" type="search" placeholder="e.g.: air fryer, bluetooth headphones..." aria-label="Search comparison" autocomplete="off" />
+          <button class="btn primary" type="submit">Search</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="buscaResultados">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Results</p>
+          <h2 id="buscaResultadosTitle">Published comparisons</h2>
+        </div>
+      </div>
+      <section class="filter-bar" id="buscaFilters" aria-label="Search filters">
+        <div class="filter-field">
+          <label for="filterCategoria">Category</label>
+          <select id="filterCategoria"><option value="">All categories</option></select>
+        </div>
+        <div class="filter-field">
+          <label for="filterPrecoMin">Price (R$)</label>
+          <div class="filter-field-range">
+            <input type="number" id="filterPrecoMin" placeholder="Min." min="0" />
+            <input type="number" id="filterPrecoMax" placeholder="Max." min="0" />
+          </div>
+        </div>
+        <div class="filter-field">
+          <span>Store</span>
+          <div class="filter-stores">
+            <label><input type="checkbox" value="mercadolivre" checked /> Mercado Livre</label>
+            <label><input type="checkbox" value="amazon" checked /> Amazon</label>
+            <label><input type="checkbox" value="shopee" checked /> Shopee</label>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button type="button" class="btn-line" id="filterClearBtn">Clear</button>
+          <button type="button" class="btn-line" id="filterSaveBtn">Save filter</button>
+        </div>
+        <p class="filter-saved-hint" id="filterSavedHint" hidden>Using your saved filter — click "Clear" to remove it.</p>
+      </section>
+      <section class="ad-slot ad-slot-wide" aria-label="Advertising" data-ad-slot-key="buscaTop" data-ad-format="horizontal">
+        <span>Advertising</span>
+        <small>Space for display network.</small>
+      </section>
+      <div class="grid" id="buscaGrid"></div>
+      <div class="stack-item" id="buscaEmpty" hidden>
+        <p>We haven't searched for that yet. We've logged your search to prioritize the next comparison.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <div class="brand">Achado<span>Agora</span></div>
+      <p>Automated comparisons with real prices and reviews.</p>
+    </div>
+    <div>
+      <ul>
+        <li><a href="index.html#ofertas">Deals</a></li>
+        <li><a href="comparativos.html">Comparisons</a></li>
+        <li><a href="busca.html">Search</a></li>
+        <li><a href="sobre.html">Method</a></li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><a href="privacidade.html">Privacy</a></li>
+        <li><a href="termos.html">Terms</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <div class="cookie" id="cookieBox" role="dialog" aria-label="Cookies">
+    <p>Cookies to measure campaigns. <a href="privacidade.html">Privacy</a>.</p>
+    <div class="cookie-actions"><button class="btn primary" id="cookieOk" type="button">Ok</button></div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Busca un producto y consulta la comparativa con precio y reseñas reales de compradores, hecha por Achado Agora." />
+  <meta name="theme-color" content="#09090b" />
+  <meta property="og:title" content="Buscar comparativa — Achado Agora" />
+  <title>Buscar comparativa — Achado Agora</title>
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body data-page="busca">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">Achado<span>Agora</span></a>
+      <nav class="nav-links" id="navLinks">
+        <a href="index.html#ofertas">Ofertas</a>
+        <a href="comparativos.html">Comparativas</a>
+        <a href="busca.html" aria-current="page">Buscar</a>
+        <a href="sobre.html">Método</a>
+      </nav>
+      <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navLinks">Menú</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="hero busca-hero">
+      <div>
+        <p class="eyebrow">Búsqueda de comparativas</p>
+        <h1>¿Qué producto quieres comparar hoy?</h1>
+        <p class="lead">Escribe lo que buscas. Te mostramos las comparativas con precio y reseñas reales que ya publicamos — sin rodeos, sin defectos escondidos en lo que recomendamos.</p>
+        <form class="busca-form" id="buscaForm" role="search">
+          <input id="buscaInput" type="search" placeholder="ej: freidora de aire, audífonos bluetooth..." aria-label="Buscar comparativa" autocomplete="off" />
+          <button class="btn primary" type="submit">Buscar</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" id="buscaResultados">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Resultados</p>
+          <h2 id="buscaResultadosTitle">Comparativas publicadas</h2>
+        </div>
+      </div>
+      <section class="filter-bar" id="buscaFilters" aria-label="Filtros de búsqueda">
+        <div class="filter-field">
+          <label for="filterCategoria">Categoría</label>
+          <select id="filterCategoria"><option value="">Todas las categorías</option></select>
+        </div>
+        <div class="filter-field">
+          <label for="filterPrecoMin">Precio (R$)</label>
+          <div class="filter-field-range">
+            <input type="number" id="filterPrecoMin" placeholder="Mín." min="0" />
+            <input type="number" id="filterPrecoMax" placeholder="Máx." min="0" />
+          </div>
+        </div>
+        <div class="filter-field">
+          <span>Tienda</span>
+          <div class="filter-stores">
+            <label><input type="checkbox" value="mercadolivre" checked /> Mercado Libre</label>
+            <label><input type="checkbox" value="amazon" checked /> Amazon</label>
+            <label><input type="checkbox" value="shopee" checked /> Shopee</label>
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button type="button" class="btn-line" id="filterClearBtn">Limpiar</button>
+          <button type="button" class="btn-line" id="filterSaveBtn">Guardar filtro</button>
+        </div>
+        <p class="filter-saved-hint" id="filterSavedHint" hidden>Usando tu filtro guardado — haz clic en "Limpiar" para quitarlo.</p>
+      </section>
+      <section class="ad-slot ad-slot-wide" aria-label="Publicidad" data-ad-slot-key="buscaTop" data-ad-format="horizontal">
+        <span>Publicidad</span>
+        <small>Espacio para red de display.</small>
+      </section>
+      <div class="grid" id="buscaGrid"></div>
+      <div class="stack-item" id="buscaEmpty" hidden>
+        <p>Todavía no investigamos esto. Registramos tu búsqueda para priorizar la próxima comparativa.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <div class="brand">Achado<span>Agora</span></div>
+      <p>Comparativas automáticas con precio y reseñas reales.</p>
+    </div>
+    <div>
+      <ul>
+        <li><a href="index.html#ofertas">Ofertas</a></li>
+        <li><a href="comparativos.html">Comparativas</a></li>
+        <li><a href="busca.html">Buscar</a></li>
+        <li><a href="sobre.html">Método</a></li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><a href="privacidade.html">Privacidad</a></li>
+        <li><a href="termos.html">Términos</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <div class="cookie" id="cookieBox" role="dialog" aria-label="Cookies">
+    <p>Cookies para medir campañas. <a href="privacidade.html">Privacidad</a>.</p>
+    <div class="cookie-actions"><button class="btn primary" id="cookieOk" type="button">Ok</button></div>
+  </div>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
