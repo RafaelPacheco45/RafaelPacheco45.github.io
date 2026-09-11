@@ -1,4 +1,5 @@
 import http from "node:http";
+import { isIP } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "./config.js";
@@ -8,8 +9,17 @@ import { cleanText } from "./lib/utils.js";
 
 const MAX_BODY_BYTES = 8 * 1024;
 const SEARCH_PATH = "/api/shopping-search";
+const SEARCH_PRIORITIES = new Set(["balanced", "lowest_price", "top_rated", "most_popular"]);
+const MARKETPLACES = new Set(["mercadolivre", "amazon", "lomadee", "shopee", "magalu"]);
+const LOOPBACK_ADDRESSES = new Set(["127.0.0.1", "::1"]);
 
 class QueueFullError extends Error {}
+class RequestError extends Error {
+  constructor(message, status = 400) {
+    super(message);
+    this.status = status;
+  }
+}
 
 function normalizedOrigin(value) {
   try {
@@ -34,62 +44,130 @@ function defaultAllowedOrigins() {
   ].filter(Boolean));
 }
 
-function requestIp(req) {
-  const cloudflareIp = String(req.headers["cf-connecting-ip"] || "").trim();
-  if (cloudflareIp) return cloudflareIp;
-  const forwarded = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
-  return forwarded || req.socket.remoteAddress || "unknown";
+function normalizeIp(value) {
+  const raw = String(value || "").trim();
+  const address = raw.startsWith("::ffff:") ? raw.slice(7) : raw;
+  if (!isIP(address) || address.includes("%")) return "";
+  // The URL parser canonicalizes equivalent IPv6 spellings for rate limiting.
+  return isIP(address) === 6 ? new URL(`http://[${address}]`).hostname.slice(1, -1) : address;
+}
+
+function requestIp(req, trustedProxyAddresses) {
+  const peer = normalizeIp(req.socket.remoteAddress);
+  if (trustedProxyAddresses.has(peer)) {
+    const cloudflareIp = normalizeIp(req.headers["cf-connecting-ip"]);
+    if (cloudflareIp) return cloudflareIp;
+  }
+  // X-Forwarded-For can contain client-supplied values; it is never an identity.
+  return peer || "unknown";
 }
 
 function responseHeaders(req, allowedOrigins) {
-  const origin = normalizedOrigin(req.headers.origin);
+  const rawOrigin = String(req.headers.origin || "");
+  const origin = normalizedOrigin(rawOrigin);
   const headers = {
     "cache-control": "no-store",
     "content-type": "application/json; charset=utf-8",
     "x-content-type-options": "nosniff",
-    "referrer-policy": "no-referrer"
+    "referrer-policy": "no-referrer",
+    vary: "Origin"
   };
-  if (origin && allowedOrigins.has(origin)) {
+  if (origin && rawOrigin === origin && allowedOrigins.has(origin)) {
     headers["access-control-allow-origin"] = origin;
     headers["access-control-allow-methods"] = "POST, OPTIONS";
     headers["access-control-allow-headers"] = "content-type";
-    headers.vary = "Origin";
   }
   return headers;
 }
 
 function sendJson(req, res, allowedOrigins, status, value, extraHeaders = {}) {
+  if (res.destroyed || res.writableEnded) return;
   const body = JSON.stringify(value);
   res.writeHead(status, { ...responseHeaders(req, allowedOrigins), ...extraHeaders });
   res.end(body);
 }
 
 async function readJsonBody(req) {
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of req) {
-    size += chunk.length;
-    if (size > MAX_BODY_BYTES) throw new Error("Pedido maior que 8 KB.");
-    chunks.push(chunk);
+  if (Number(req.headers["content-length"]) > MAX_BODY_BYTES) {
+    req.resume();
+    throw new RequestError("Pedido maior que 8 KB.", 413);
   }
-  if (!chunks.length) return {};
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    const finish = (error, value) => {
+      clearTimeout(timer);
+      req.removeListener("data", onData);
+      req.removeListener("end", onEnd);
+      req.removeListener("error", onError);
+      req.removeListener("aborted", onAborted);
+      if (error) {
+        req.resume();
+        reject(error);
+      } else resolve(value);
+    };
+    const onData = (chunk) => {
+      size += chunk.length;
+      if (size > MAX_BODY_BYTES) finish(new RequestError("Pedido maior que 8 KB.", 413));
+      else chunks.push(chunk);
+    };
+    const onEnd = () => {
+      try {
+        finish(null, JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } catch {
+        finish(new RequestError("Envie um objeto JSON valido."));
+      }
+    };
+    const onError = () => finish(new RequestError("Nao foi possivel ler o pedido."));
+    const onAborted = () => finish(new RequestError("Pedido interrompido."));
+    const timer = setTimeout(() => finish(new RequestError("Tempo para enviar o pedido esgotado.", 408)), 15000);
+    timer.unref();
+    req.on("data", onData);
+    req.on("end", onEnd);
+    req.on("error", onError);
+    req.on("aborted", onAborted);
+  });
 }
 
 function normalizeRequest(body) {
-  const query = cleanText(body.query || body.q || "").slice(0, 160);
-  if (query.length < 2) throw new Error("Informe pelo menos 2 caracteres para buscar.");
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new RequestError("Envie um objeto JSON valido.");
+  }
+  const textField = (value, name, maxLength, fallback = "") => {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (typeof value !== "string" || value.length > maxLength) throw new RequestError(`Campo ${name} invalido.`);
+    return cleanText(value);
+  };
+  const numberField = (value, name, max = Number.MAX_SAFE_INTEGER) => {
+    if (value === undefined || value === null || value === "") return null;
+    if (!["number", "string"].includes(typeof value) || !String(value).trim()) throw new RequestError(`Campo ${name} invalido.`);
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < 0 || number > max) throw new RequestError(`Campo ${name} invalido.`);
+    return number;
+  };
+  const query = textField(body.query ?? body.q, "query", 160);
+  if (query.length < 2) throw new RequestError("Informe pelo menos 2 caracteres para buscar.");
+  const priority = textField(body.priority, "priority", 30, "balanced");
+  if (!SEARCH_PRIORITIES.has(priority)) throw new RequestError("Prioridade de busca invalida.");
+  if (body.marketplaces !== undefined && (!Array.isArray(body.marketplaces) || body.marketplaces.length > MARKETPLACES.size)) {
+    throw new RequestError("Lista de lojas invalida.");
+  }
+  const marketplaces = [...new Set((body.marketplaces || []).map((value) => textField(value, "marketplaces", 30).toLowerCase()))].sort();
+  if (marketplaces.some((value) => !MARKETPLACES.has(value))) throw new RequestError("Loja de busca invalida.");
+  let priceMin = numberField(body.priceMin, "priceMin");
+  let priceMax = numberField(body.priceMax, "priceMax");
+  if (priceMin !== null && priceMax !== null && priceMin > priceMax) [priceMin, priceMax] = [priceMax, priceMin];
   return {
     query,
-    category: cleanText(body.category || "geral").slice(0, 60) || "geral",
-    limit: Math.trunc(Math.max(3, Math.min(Number(body.limit) || config.publicSearchLimit, config.publicSearchLimit))),
+    category: textField(body.category, "category", 60, "geral") || "geral",
+    limit: Math.trunc(Math.max(3, Math.min(numberField(body.limit, "limit") || config.publicSearchLimit, config.publicSearchLimit))),
     live: true,
     preferAffiliate: true,
-    priority: cleanText(body.priority || "balanced"),
-    priceMin: body.priceMin,
-    priceMax: body.priceMax,
-    minRating: body.minRating,
-    marketplaces: Array.isArray(body.marketplaces) ? body.marketplaces.slice(0, 5) : [],
+    priority,
+    priceMin,
+    priceMax,
+    minRating: numberField(body.minRating, "minRating", 5),
+    marketplaces,
     headless: true
   };
 }
@@ -110,7 +188,10 @@ function cacheKey(input) {
 function publicSafeResult(result) {
   const out = structuredClone(result);
   if (out.liveError) out.liveError = "A busca ao vivo falhou temporariamente.";
-  for (const item of [out.recommendation, out.cheapest, out.topRated, ...(out.alternatives || [])]) {
+  for (const source of out.sourceStatus || []) {
+    if (source.error) source.error = "Esta loja esta temporariamente indisponivel.";
+  }
+  for (const item of [out.recommendation, out.cheapest, out.topRated, ...(out.offers || []), ...(out.alternatives || [])]) {
     if (item?.affiliateError) item.affiliateError = "Falha temporaria ao gerar o link afiliado.";
   }
   return out;
@@ -147,6 +228,14 @@ export function createPublicSearchServer(options = {}) {
   const search = options.search || runShoppingSearch;
   const allowedOrigins = options.allowedOrigins || defaultAllowedOrigins();
   const now = options.now || Date.now;
+  // Production uses cloudflared -> loopback. A public bind trusts no proxy by
+  // default; other deployments must explicitly provide trusted peer addresses.
+  const trustedProxyAddresses = new Set((options.trustedProxyAddresses ??
+    (LOOPBACK_ADDRESSES.has(config.publicSearchHost) || config.publicSearchHost === "localhost" ? [...LOOPBACK_ADDRESSES] : []))
+    .map(normalizeIp).filter(Boolean));
+  const maxCacheEntries = Math.max(1, Math.min(options.maxCacheEntries ?? 1000, 1000));
+  const maxRateBuckets = Math.max(1, Math.min(options.maxRateBuckets ?? 10000, 10000));
+  const rateLimit = options.rateLimit ?? config.publicSearchRateLimit;
   const resultCache = new Map();
   const inFlight = new Map();
   const rateBuckets = new Map();
@@ -154,22 +243,29 @@ export function createPublicSearchServer(options = {}) {
 
   function consumeRateLimit(ip) {
     const cutoff = now() - config.publicSearchRateWindowMs;
-    if (rateBuckets.size > 10000) {
+    if (rateBuckets.size >= maxRateBuckets) {
       for (const [key, stamps] of rateBuckets) {
         if (!stamps.some((stamp) => stamp > cutoff)) rateBuckets.delete(key);
       }
     }
+    if (!rateBuckets.has(ip) && rateBuckets.size >= maxRateBuckets) return false;
     const recent = (rateBuckets.get(ip) || []).filter((stamp) => stamp > cutoff);
-    if (recent.length >= config.publicSearchRateLimit) return false;
+    if (recent.length >= rateLimit) return false;
     recent.push(now());
     rateBuckets.set(ip, recent);
     return true;
   }
 
-  return http.createServer(async (req, res) => {
-    const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);
+  return http.createServer({ requestTimeout: 15000, headersTimeout: 10000 }, async (req, res) => {
+    let url;
+    try {
+      url = new URL(req.url || "/", "http://localhost");
+    } catch {
+      sendJson(req, res, allowedOrigins, 400, { ok: false, error: "Endereco de pedido invalido." });
+      return;
+    }
     const origin = normalizedOrigin(req.headers.origin);
-    if (origin && !allowedOrigins.has(origin)) {
+    if (req.headers.origin !== undefined && (!origin || origin !== req.headers.origin || !allowedOrigins.has(origin))) {
       sendJson(req, res, allowedOrigins, 403, { ok: false, error: "Origem nao autorizada." });
       return;
     }
@@ -190,16 +286,22 @@ export function createPublicSearchServer(options = {}) {
       return;
     }
 
-    const ip = requestIp(req);
+    const ip = requestIp(req, trustedProxyAddresses);
     if (!consumeRateLimit(ip)) {
       sendJson(req, res, allowedOrigins, 429, { ok: false, error: "Limite de buscas atingido. Tente novamente mais tarde." }, { "retry-after": String(Math.ceil(config.publicSearchRateWindowMs / 1000)) });
       return;
     }
 
     try {
+      if (!/^application\/json(?:\s*;|$)/i.test(String(req.headers["content-type"] || ""))) {
+        throw new RequestError("Envie o pedido como application/json.", 415);
+      }
+      if (req.headers["content-encoding"] && req.headers["content-encoding"] !== "identity") {
+        throw new RequestError("Compressao de pedidos nao suportada.", 415);
+      }
       const input = normalizeRequest(await readJsonBody(req));
       const key = cacheKey(input);
-      if (resultCache.size > 1000) {
+      if (resultCache.size >= maxCacheEntries) {
         for (const [cacheEntryKey, entry] of resultCache) {
           if (entry.expiresAt <= now()) resultCache.delete(cacheEntryKey);
         }
@@ -209,6 +311,7 @@ export function createPublicSearchServer(options = {}) {
         sendJson(req, res, allowedOrigins, 200, { ...cached.value, cache: "hit" });
         return;
       }
+      if (cached) resultCache.delete(key);
 
       let pending = inFlight.get(key);
       if (!pending) {
@@ -217,15 +320,21 @@ export function createPublicSearchServer(options = {}) {
       }
       try {
         const result = await pending;
-        resultCache.set(key, { value: result, expiresAt: now() + config.publicSearchCacheTtlMs });
+        if (result.ok && !result.liveError && !(result.sourceStatus || []).some((source) => source.status === "error")) {
+          if (!resultCache.has(key) && resultCache.size >= maxCacheEntries) resultCache.delete(resultCache.keys().next().value);
+          resultCache.set(key, { value: result, expiresAt: now() + config.publicSearchCacheTtlMs });
+        }
         sendJson(req, res, allowedOrigins, 200, { ...result, cache: "miss" });
       } finally {
         if (inFlight.get(key) === pending) inFlight.delete(key);
       }
     } catch (error) {
-      const status = error instanceof QueueFullError ? 503 : error instanceof SyntaxError ? 400 : /Informe|Pedido/.test(error.message) ? 400 : 500;
+      const status = error instanceof QueueFullError ? 503 : error instanceof RequestError ? error.status : 500;
       const message = status === 500 ? "Nao foi possivel concluir a busca agora." : error.message;
-      sendJson(req, res, allowedOrigins, status, { ok: false, error: message });
+      sendJson(req, res, allowedOrigins, status, { ok: false, error: message }, {
+        ...(status === 503 ? { "retry-after": "5" } : {}),
+        ...([408, 413, 415].includes(status) ? { connection: "close" } : {})
+      });
     }
   });
 }

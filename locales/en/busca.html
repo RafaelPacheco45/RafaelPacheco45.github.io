@@ -30,9 +30,9 @@
   <main class="page">
     <section class="hero busca-hero">
       <div>
-        <p class="eyebrow">Comparison search</p>
-        <h1>Which product do you want to compare today?</h1>
-        <p class="lead">Type what you're looking for. We show the comparisons with real prices and reviews we've already published — no fluff, no defects hidden in what we recommend.</p>
+        <p class="eyebrow">Deal search</p>
+        <h1>What product do you want to find today?</h1>
+        <p class="lead">Enter a product. We check available stores, compare the options and show prices for you to confirm at checkout.</p>
         <form class="busca-form" id="buscaForm" role="search">
           <input id="buscaInput" type="search" placeholder="e.g.: air fryer, bluetooth headphones..." aria-label="Search comparison" autocomplete="off" />
           <button class="btn primary" type="submit">Search</button>
@@ -44,34 +44,65 @@
       <div class="section-head">
         <div>
           <p class="eyebrow">Results</p>
-          <h2 id="buscaResultadosTitle">Published comparisons</h2>
+          <h2 id="buscaResultadosTitle">Find your next deal</h2>
+          <p class="results-context" id="activePreferencesSummary">Priority: best balance.</p>
+          <p class="results-context" id="buscaStatus" role="status" aria-live="polite"></p>
         </div>
       </div>
-      <section class="filter-bar" id="buscaFilters" aria-label="Search filters">
-        <div class="filter-field">
-          <label for="filterCategoria">Category</label>
-          <select id="filterCategoria"><option value="">All categories</option></select>
+      <section class="search-preferences" id="buscaFilters" aria-labelledby="searchPreferencesTitle">
+        <div class="preferences-head">
+          <div>
+            <p class="eyebrow">Customize the engine</p>
+            <h2 id="searchPreferencesTitle">You choose what matters</h2>
+            <p>Set your budget, minimum rating and stores. Your choices guide the live search.</p>
+          </div>
+          <span class="preferences-device">Preferences for this device</span>
         </div>
-        <div class="filter-field">
-          <label for="filterPrecoMin">Price (R$)</label>
-          <div class="filter-field-range">
-            <input type="number" id="filterPrecoMin" placeholder="Min." min="0" />
-            <input type="number" id="filterPrecoMax" placeholder="Max." min="0" />
+        <div class="preferences-grid">
+          <div class="filter-field">
+            <label for="filterPrioridade">Prioritize</label>
+            <select id="filterPrioridade">
+              <option value="balanced">Best balance</option>
+              <option value="lowest_price">Lowest price</option>
+              <option value="top_rated">Highest rating</option>
+              <option value="most_popular">Most popular</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="filterPrecoMin">Price (R$)</label>
+            <div class="filter-field-range">
+              <input type="number" id="filterPrecoMin" placeholder="Min." min="0" inputmode="decimal" />
+              <input type="number" id="filterPrecoMax" placeholder="Max." min="0" inputmode="decimal" />
+            </div>
+          </div>
+          <div class="filter-field">
+            <label for="filterNotaMin">Minimum rating</label>
+            <select id="filterNotaMin">
+              <option value="">Any rating</option>
+              <option value="4">4.0 or higher</option>
+              <option value="4.5">4.5 or higher</option>
+              <option value="4.7">4.7 or higher</option>
+              <option value="4.8">4.8 or higher</option>
+            </select>
+          </div>
+          <fieldset class="filter-field filter-store-field">
+            <legend>Stores</legend>
+            <div class="filter-stores">
+              <label><input type="checkbox" value="mercadolivre" checked /> Mercado Livre</label>
+              <label><input type="checkbox" value="amazon" checked /> Amazon</label>
+              <label><input type="checkbox" value="shopee" checked /> Shopee</label>
+              <label><input type="checkbox" value="lomadee" checked /> Partner stores</label>
+              <label><input type="checkbox" value="magalu" checked /> Magalu</label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="preferences-actions">
+          <p class="filter-saved-hint" id="filterSavedHint" role="status" aria-live="polite">Adjust the filters and save them if you want to reuse them.</p>
+          <div class="filter-actions">
+            <button type="button" class="btn-line" id="filterClearBtn">Restore defaults</button>
+            <button type="button" class="btn primary" id="filterSaveBtn">Save preferences</button>
           </div>
         </div>
-        <div class="filter-field">
-          <span>Store</span>
-          <div class="filter-stores">
-            <label><input type="checkbox" value="mercadolivre" checked /> Mercado Livre</label>
-            <label><input type="checkbox" value="amazon" checked /> Amazon</label>
-            <label><input type="checkbox" value="shopee" checked /> Shopee</label>
-          </div>
-        </div>
-        <div class="filter-actions">
-          <button type="button" class="btn-line" id="filterClearBtn">Clear</button>
-          <button type="button" class="btn-line" id="filterSaveBtn">Save filter</button>
-        </div>
-        <p class="filter-saved-hint" id="filterSavedHint" hidden>Using your saved filter — click "Clear" to remove it.</p>
       </section>
       <section class="ad-slot ad-slot-wide" aria-label="Advertising" data-ad-slot-key="buscaTop" data-ad-format="horizontal">
         <span>Advertising</span>

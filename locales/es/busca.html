@@ -30,9 +30,9 @@
   <main class="page">
     <section class="hero busca-hero">
       <div>
-        <p class="eyebrow">Búsqueda de comparativas</p>
-        <h1>¿Qué producto quieres comparar hoy?</h1>
-        <p class="lead">Escribe lo que buscas. Te mostramos las comparativas con precio y reseñas reales que ya publicamos — sin rodeos, sin defectos escondidos en lo que recomendamos.</p>
+        <p class="eyebrow">Búsqueda de ofertas</p>
+        <h1>¿Qué producto quieres encontrar hoy?</h1>
+        <p class="lead">Escribe un producto. Consultamos las tiendas disponibles, comparamos las opciones y mostramos precios para que los confirmes al finalizar la compra.</p>
         <form class="busca-form" id="buscaForm" role="search">
           <input id="buscaInput" type="search" placeholder="ej: freidora de aire, audífonos bluetooth..." aria-label="Buscar comparativa" autocomplete="off" />
           <button class="btn primary" type="submit">Buscar</button>
@@ -44,34 +44,65 @@
       <div class="section-head">
         <div>
           <p class="eyebrow">Resultados</p>
-          <h2 id="buscaResultadosTitle">Comparativas publicadas</h2>
+          <h2 id="buscaResultadosTitle">Encuentra tu próxima oferta</h2>
+          <p class="results-context" id="activePreferencesSummary">Prioridad: mejor equilibrio.</p>
+          <p class="results-context" id="buscaStatus" role="status" aria-live="polite"></p>
         </div>
       </div>
-      <section class="filter-bar" id="buscaFilters" aria-label="Filtros de búsqueda">
-        <div class="filter-field">
-          <label for="filterCategoria">Categoría</label>
-          <select id="filterCategoria"><option value="">Todas las categorías</option></select>
+      <section class="search-preferences" id="buscaFilters" aria-labelledby="searchPreferencesTitle">
+        <div class="preferences-head">
+          <div>
+            <p class="eyebrow">Personaliza el motor</p>
+            <h2 id="searchPreferencesTitle">Tú eliges lo que importa</h2>
+            <p>Define el presupuesto, la valoración mínima y las tiendas. Tus elecciones orientan la búsqueda en vivo.</p>
+          </div>
+          <span class="preferences-device">Preferencias de este dispositivo</span>
         </div>
-        <div class="filter-field">
-          <label for="filterPrecoMin">Precio (R$)</label>
-          <div class="filter-field-range">
-            <input type="number" id="filterPrecoMin" placeholder="Mín." min="0" />
-            <input type="number" id="filterPrecoMax" placeholder="Máx." min="0" />
+        <div class="preferences-grid">
+          <div class="filter-field">
+            <label for="filterPrioridade">Priorizar</label>
+            <select id="filterPrioridade">
+              <option value="balanced">Mejor equilibrio</option>
+              <option value="lowest_price">Menor precio</option>
+              <option value="top_rated">Mejor valoración</option>
+              <option value="most_popular">Más popular</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="filterPrecoMin">Precio (R$)</label>
+            <div class="filter-field-range">
+              <input type="number" id="filterPrecoMin" placeholder="Mín." min="0" inputmode="decimal" />
+              <input type="number" id="filterPrecoMax" placeholder="Máx." min="0" inputmode="decimal" />
+            </div>
+          </div>
+          <div class="filter-field">
+            <label for="filterNotaMin">Valoración mínima</label>
+            <select id="filterNotaMin">
+              <option value="">Cualquier valoración</option>
+              <option value="4">4,0 o más</option>
+              <option value="4.5">4,5 o más</option>
+              <option value="4.7">4,7 o más</option>
+              <option value="4.8">4,8 o más</option>
+            </select>
+          </div>
+          <fieldset class="filter-field filter-store-field">
+            <legend>Tiendas</legend>
+            <div class="filter-stores">
+              <label><input type="checkbox" value="mercadolivre" checked /> Mercado Libre</label>
+              <label><input type="checkbox" value="amazon" checked /> Amazon</label>
+              <label><input type="checkbox" value="shopee" checked /> Shopee</label>
+              <label><input type="checkbox" value="lomadee" checked /> Tiendas asociadas</label>
+              <label><input type="checkbox" value="magalu" checked /> Magalu</label>
+            </div>
+          </fieldset>
+        </div>
+        <div class="preferences-actions">
+          <p class="filter-saved-hint" id="filterSavedHint" role="status" aria-live="polite">Ajusta los filtros y guárdalos si quieres volver a usarlos.</p>
+          <div class="filter-actions">
+            <button type="button" class="btn-line" id="filterClearBtn">Restaurar valores</button>
+            <button type="button" class="btn primary" id="filterSaveBtn">Guardar preferencias</button>
           </div>
         </div>
-        <div class="filter-field">
-          <span>Tienda</span>
-          <div class="filter-stores">
-            <label><input type="checkbox" value="mercadolivre" checked /> Mercado Libre</label>
-            <label><input type="checkbox" value="amazon" checked /> Amazon</label>
-            <label><input type="checkbox" value="shopee" checked /> Shopee</label>
-          </div>
-        </div>
-        <div class="filter-actions">
-          <button type="button" class="btn-line" id="filterClearBtn">Limpiar</button>
-          <button type="button" class="btn-line" id="filterSaveBtn">Guardar filtro</button>
-        </div>
-        <p class="filter-saved-hint" id="filterSavedHint" hidden>Usando tu filtro guardado — haz clic en "Limpiar" para quitarlo.</p>
       </section>
       <section class="ad-slot ad-slot-wide" aria-label="Publicidad" data-ad-slot-key="buscaTop" data-ad-format="horizontal">
         <span>Publicidad</span>

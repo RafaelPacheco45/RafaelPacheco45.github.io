@@ -1,11 +1,32 @@
 import { config } from "./config.js";
-import { listComparisons, listProducts, logEvent, upsertProduct } from "./db.js";
+import { getProduct, listComparisons, listProducts, logEvent, upsertProduct } from "./db.js";
 import { searchMercadoLivreProducts, generateMercadoLivreAffiliateLink } from "./adapters/mercadoLivre.js";
 import { searchLomadeeProducts, generateLomadeeAffiliateLink } from "./adapters/lomadee.js";
-import { searchGoogleAiMode } from "./adapters/googleAiMode.js";
 import { loadSiteConfig } from "./sitePublisher.js";
 import { cleanText, slugify } from "./lib/utils.js";
 import { withBrowser } from "./browser.js";
+import { filterRelevantCandidates } from "./lib/searchRelevance.js";
+
+const MAX_OFFERS = 4;
+const MAX_CACHED_PRICE_AGE_MS = 24 * 60 * 60 * 1000;
+
+function safeUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" && !url.username && !url.password ? url.toString() : "";
+  } catch { return ""; }
+}
+
+function merchantMarketplace(candidate) {
+  try {
+    const hostname = new URL(candidate.sourceUrl).hostname;
+    if (/(^|\.)mercadolivre\.com\.br$/.test(hostname)) return "mercadolivre";
+    if (/(^|\.)amazon\.com\.br$/.test(hostname) || hostname === "amzn.to") return "amazon";
+    if (/(^|\.)shopee\.com\.br$/.test(hostname)) return "shopee";
+    if (/(^|\.)(magazineluiza\.com\.br|magalu\.com)$/.test(hostname)) return "magalu";
+  } catch { /* invalid URLs are removed before ranking */ }
+  return normalizeMarketplace(candidate.marketplace);
+}
 
 const TRUST_SCORE = {
   mercadolivre: 14,
@@ -91,7 +112,7 @@ function siteProductToCandidate(product) {
     id: product.id,
     marketplace,
     store: product.store || marketplaceLabel(marketplace),
-    sourceUrl: product.affiliateUrl || "",
+    sourceUrl: product.sourceUrl || product.affiliateUrl || "",
     affiliateUrl: product.affiliateUrl || "",
     title: product.title || "",
     brand: product.brand || "",
@@ -105,7 +126,8 @@ function siteProductToCandidate(product) {
     reviewLabel: product.reviewLabel || "",
     imageUrl: product.image || "",
     status: product.affiliateUrl ? "published" : "cached",
-    source: "site_config"
+    source: "site_config",
+    observedAt: product.priceCheckedAt || ""
   };
 }
 
@@ -113,7 +135,7 @@ function dbProductToCandidate(product) {
   const marketplace = normalizeMarketplace(product.marketplace);
   return {
     ...product,
-    store: marketplaceLabel(marketplace),
+    store: product.store || marketplaceLabel(marketplace),
     marketplace,
     price: numberOrNull(product.price),
     oldPrice: numberOrNull(product.oldPrice),
@@ -155,17 +177,20 @@ export function dedupeCandidates(items) {
 }
 
 function hasAffiliateLink(candidate) {
-  const url = String(candidate.affiliateUrl || "");
+  const url = safeUrl(candidate.affiliateUrl);
   if (!url) return false;
-  if (candidate.marketplace === "mercadolivre") return /^https:\/\/meli\.la\//i.test(url) || /[?&]matt_(?:tool|word)=/i.test(url);
-  if (candidate.marketplace === "amazon") return /[?&]tag=/i.test(url);
-  if (candidate.marketplace === "lomadee") return /^https:\/\/[^/]*lmdee\.link\//i.test(url) || /^https:\/\/[^/]*lomadee/i.test(url);
-  return true;
+  const parsed = new URL(url);
+  if (candidate.marketplace === "mercadolivre") return parsed.hostname === "meli.la"
+    || (/(^|\.)mercadolivre\.com\.br$/.test(parsed.hostname) && Boolean(parsed.searchParams.get("matt_tool")));
+  if (candidate.marketplace === "amazon") return /(^|\.)amazon\.com\.br$/.test(parsed.hostname) && Boolean(parsed.searchParams.get("tag"));
+  if (candidate.marketplace === "lomadee") return /(^|\.)lmdee\.link$/.test(parsed.hostname);
+  return false;
 }
 
 function canGenerateAffiliate(candidate) {
-  if (candidate.marketplace === "mercadolivre") return /^https?:\/\//i.test(String(candidate.sourceUrl || ""));
-  if (candidate.marketplace === "lomadee") return Boolean(candidate.organizationId) && /^https?:\/\//i.test(String(candidate.sourceUrl || ""));
+  if (!safeUrl(candidate.sourceUrl)) return false;
+  if (candidate.marketplace === "mercadolivre") return /(^|\.)mercadolivre\.com\.br$/.test(new URL(candidate.sourceUrl).hostname);
+  if (candidate.marketplace === "lomadee") return Boolean(candidate.organizationId);
   return false;
 }
 
@@ -205,7 +230,7 @@ function reasonsFor(candidate, medianPrice) {
   if (volume >= 1000) reasons.push("muito vendido/avaliado");
   else if (volume >= 100) reasons.push("volume razoavel de prova social");
   if (price && medianPrice && price <= medianPrice) reasons.push("preco abaixo ou perto da mediana");
-  reasons.push(`loja confiavel: ${marketplaceLabel(candidate.marketplace)}`);
+  if (!reasons.length) reasons.push("confira frete e disponibilidade na loja");
   return reasons;
 }
 
@@ -217,7 +242,8 @@ export function rankShoppingCandidates(items, preferences = {}) {
     if (normalized.priceMin !== null && (!price || price < normalized.priceMin)) return false;
     if (normalized.priceMax !== null && (!price || price > normalized.priceMax)) return false;
     if (normalized.minRating !== null && (!rating || rating < normalized.minRating)) return false;
-    if (normalized.marketplaces.length && !normalized.marketplaces.includes(normalizeMarketplace(item.marketplace || item.store))) return false;
+    if (normalized.marketplaces.length && !normalized.marketplaces.includes(normalizeMarketplace(item.marketplace || item.store))
+      && !normalized.marketplaces.includes(merchantMarketplace(item))) return false;
     return true;
   });
   const medianPrice = median(filtered.map((item) => item.price));
@@ -270,8 +296,9 @@ function topRatedCandidate(ranked) {
 
 function publicCandidate(candidate) {
   if (!candidate) return null;
-  const shortDescription = cleanText(candidate.description || "").slice(0, 420);
-  const shortWhy = cleanText(candidate.why || "").slice(0, 260);
+  const editorialText = (value, length) => /entrada criada|a ia deve|publicacao final|publicação final/i.test(value || "") ? "" : cleanText(value || "").slice(0, length);
+  const shortDescription = editorialText(candidate.description, 420);
+  const shortWhy = editorialText(candidate.why, 260);
   return {
     id: candidate.id,
     marketplace: candidate.marketplace,
@@ -287,8 +314,9 @@ function publicCandidate(candidate) {
     rating: candidate.rating,
     reviewLabel: candidate.reviewLabel || "",
     imageUrl: candidate.imageUrl || "",
-    sourceUrl: candidate.sourceUrl || "",
-    affiliateUrl: candidate.affiliateUrl || "",
+    sourceUrl: safeUrl(candidate.sourceUrl),
+    affiliateUrl: hasAffiliateLink(candidate) ? safeUrl(candidate.affiliateUrl) : "",
+    checkedAt: candidate.observedAt || "",
     affiliateReady: Boolean(candidate.affiliateReady),
     affiliateEligible: Boolean(candidate.affiliateEligible),
     affiliateStatus: candidate.affiliateStatus || (candidate.affiliateReady ? "ready" : candidate.affiliateEligible ? "eligible" : "none"),
@@ -310,11 +338,12 @@ function cachedCandidates(query, category) {
   const site = loadSiteConfig();
   const siteProducts = Array.isArray(site.products) ? site.products.map(siteProductToCandidate) : [];
   const dbProducts = listProducts(500).map(dbProductToCandidate);
-  const filtered = dedupeCandidates([...siteProducts, ...dbProducts]).filter((item) => {
+  const filtered = dedupeCandidates([...dbProducts, ...siteProducts]).filter((item) => {
     const categoryOk = !category || category === "geral" || item.category === category;
-    return categoryOk && titleMatches(item, query);
+    const age = Date.now() - Date.parse(item.observedAt || "");
+    return categoryOk && age >= 0 && age <= MAX_CACHED_PRICE_AGE_MS;
   });
-  return filtered;
+  return filterRelevantCandidates(filtered, query);
 }
 
 function summarizeSources(candidates, extra = []) {
@@ -334,15 +363,24 @@ function summarizeSources(candidates, extra = []) {
   ];
 }
 
+export function visibleShoppingOffers(ranked) {
+  const recommendation = ranked[0];
+  if (!recommendation) return [];
+  const cheapest = cheapestCandidate(ranked);
+  return [...new Map([recommendation, cheapest, ...ranked].filter(Boolean).map((item) => [item.id, item])).values()].slice(0, MAX_OFFERS);
+}
+
 function buildResult({ query, category, mode, candidates, comparison = null, sourceStatus = [], liveAvailable = false, queued = false, preferences = {}, preferAffiliate = true }) {
   const normalizedPreferences = normalizeSearchPreferences(preferences);
-  const ranked = rankShoppingCandidates(candidates, normalizedPreferences);
+  const relevant = filterRelevantCandidates(candidates, query).filter((item) => safeUrl(item.sourceUrl) && numberOrNull(item.price));
+  const ranked = rankShoppingCandidates(relevant, normalizedPreferences);
   const recommendation = chooseShoppingRecommendation(ranked, normalizedPreferences);
   const cheapest = cheapestCandidate(ranked);
-  const alternatives = ranked.filter((item) =>
+  const offers = visibleShoppingOffers(ranked);
+  const alternatives = offers.filter((item) =>
     (!recommendation || item.id !== recommendation.id) &&
     (!cheapest || item.id !== cheapest.id)
-  ).slice(0, 5);
+  );
   return {
     ok: true,
     query,
@@ -354,7 +392,10 @@ function buildResult({ query, category, mode, candidates, comparison = null, sou
     preferences: normalizedPreferences,
     recommendation: publicCandidate(recommendation),
     cheapest: publicCandidate(cheapest),
-    topRated: publicCandidate(topRatedCandidate(ranked)),
+    topRated: publicCandidate(topRatedCandidate(offers)),
+    offers: offers.map(publicCandidate),
+    isCached: mode !== "live",
+    checkedAt: offers.map((item) => item.observedAt).filter(Boolean).sort()[0] || "",
     alternatives: alternatives.map(publicCandidate),
     comparison: comparison ? {
       query: comparison.query,
@@ -378,6 +419,7 @@ async function liveMercadoLivreSearch({ query, category, limit, headless }) {
     const found = await searchMercadoLivreProducts({ query, category, limit, page });
     const saved = found.map((candidate) => upsertProduct({
       ...candidate,
+      observedAt: new Date().toISOString(),
       affiliateUrl: candidate.affiliateUrl || "",
       status: candidate.affiliateUrl ? "affiliate_ready" : "discovered"
     }));
@@ -391,13 +433,13 @@ async function liveMercadoLivreSearch({ query, category, limit, headless }) {
         count: found.length
       }]
     };
-  }, { timeoutMs: 90000, headless });
+  }, { timeoutMs: 15000, deadlineMs: 35000, headless });
 }
 
 async function liveLomadeeSearch({ query, limit }) {
   const found = await searchLomadeeProducts({ query, limit });
   const saved = found.map((candidate) => {
-    const product = upsertProduct({ ...candidate, affiliateUrl: candidate.affiliateUrl || "", status: candidate.affiliateUrl ? "affiliate_ready" : "discovered" });
+    const product = upsertProduct({ ...candidate, observedAt: new Date().toISOString(), affiliateUrl: candidate.affiliateUrl || "", status: candidate.affiliateUrl ? "affiliate_ready" : "discovered" });
     const restored = dbProductToCandidate(product);
     return { ...restored, organizationId: candidate.organizationId, store: candidate.store };
   });
@@ -428,7 +470,7 @@ export async function attemptAffiliateForWinner(candidate, {
         ? await lomadeeGenerator(candidate)
         : await generateLomadeeAffiliateLink({ organizationId: candidate.organizationId, sourceUrl: candidate.sourceUrl });
     }
-    if (!affiliateUrl) return candidate;
+    if (!hasAffiliateLink({ ...candidate, affiliateUrl })) throw new Error("A loja nao retornou um link de afiliado valido.");
     return {
       ...candidate,
       affiliateUrl,
@@ -446,6 +488,38 @@ export async function attemptAffiliateForWinner(candidate, {
   }
 }
 
+export async function affiliateShoppingOffers(candidates, options = {}) {
+  const output = new Map();
+  const savedCandidate = (candidate) => {
+    const previous = getProduct(candidate.id);
+    return previous && previous.sourceUrl === candidate.sourceUrl && hasAffiliateLink(previous)
+      ? { ...candidate, affiliateUrl: previous.affiliateUrl, affiliateStatus: "ready" } : candidate;
+  };
+  const selected = candidates.map(savedCandidate);
+  const collect = async (candidate, overrides = {}) => {
+    const result = await attemptAffiliateForWinner(candidate, { ...options, ...overrides });
+    output.set(candidate.id, result);
+    if (hasAffiliateLink(result)) upsertProduct({ ...result, status: "affiliate_ready" });
+  };
+  const needsMl = selected.filter((item) => item.marketplace === "mercadolivre" && !hasAffiliateLink(item) && canGenerateAffiliate(item));
+  const jobs = selected.filter((item) => !needsMl.includes(item)).map((item) => collect(item));
+  if (needsMl.length) {
+    if (options.mercadoLivreGenerator) {
+      jobs.push((async () => { for (const item of needsMl) await collect(item); })());
+    } else {
+      jobs.push(withBrowser(async ({ page }) => {
+        for (const item of needsMl) {
+          await collect(item, { mercadoLivreGenerator: (candidate) => generateMercadoLivreAffiliateLink({ sourceUrl: candidate.sourceUrl, page }) });
+        }
+      }, { headless: options.headless === true, timeoutMs: 10000, deadlineMs: 35000 }).catch(() => {
+        for (const item of needsMl) if (!output.has(item.id)) output.set(item.id, { ...item, affiliateStatus: "failed", affiliateError: "Nao foi possivel gerar o link agora." });
+      }));
+    }
+  }
+  await Promise.all(jobs);
+  return candidates.map((item) => output.get(item.id) || item);
+}
+
 export async function runShoppingSearch({
   query,
   category = "geral",
@@ -458,13 +532,13 @@ export async function runShoppingSearch({
   minRating = null,
   marketplaces = [],
   headless = false
-}) {
+}, dependencies = {}) {
   const cleanQuery = cleanText(query || "");
   if (!cleanQuery) throw new Error("Informe o produto para buscar.");
   const preferences = normalizeSearchPreferences({ priority, priceMin, priceMax, minRating, marketplaces });
 
-  const comparison = findCachedComparison(cleanQuery);
-  const cached = cachedCandidates(cleanQuery, category);
+  const comparison = null;
+  const cached = dependencies.cachedCandidates ? dependencies.cachedCandidates(cleanQuery, category) : cachedCandidates(cleanQuery, category);
   if (!live) {
     return buildResult({
       query: cleanQuery,
@@ -481,10 +555,10 @@ export async function runShoppingSearch({
   const acceptsMarketplace = (marketplace) => !preferences.marketplaces.length || preferences.marketplaces.includes(marketplace);
   const sources = [];
   if (acceptsMarketplace("mercadolivre")) {
-    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => liveMercadoLivreSearch({ query: cleanQuery, category, limit, headless }) });
+    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => (dependencies.mercadoLivreSearch || liveMercadoLivreSearch)({ query: cleanQuery, category, limit: Math.max(24, limit), headless }) });
   }
-  if (config.lomadeeApiKey && acceptsMarketplace("lomadee")) {
-    sources.push({ marketplace: "lomadee", label: "Lojas parceiras", run: () => liveLomadeeSearch({ query: cleanQuery, limit }) });
+  if ((config.lomadeeApiKey || dependencies.lomadeeSearch) && (!preferences.marketplaces.length || preferences.marketplaces.some((key) => key !== "mercadolivre"))) {
+    sources.push({ marketplace: "lomadee", label: "Lojas parceiras", run: () => (dependencies.lomadeeSearch || liveLomadeeSearch)({ query: cleanQuery, limit: 100 }) });
   }
   if (!sources.length) {
     return buildResult({
@@ -508,7 +582,8 @@ export async function runShoppingSearch({
     if (outcome.status === "fulfilled") {
       anyOk = true;
       candidates.push(...outcome.value.candidates);
-      sourceStatus.push(...outcome.value.sourceStatus);
+      const matching = filterRelevantCandidates(outcome.value.candidates, cleanQuery);
+      sourceStatus.push({ marketplace: source.marketplace, label: source.label, status: matching.length ? "ok" : "empty", count: matching.length });
       logEvent("info", "Motor de busca ao vivo concluido", { query: cleanQuery, marketplace: source.marketplace, count: outcome.value.candidates.length });
     } else {
       sourceStatus.push({ marketplace: source.marketplace, label: source.label, status: "error", count: 0, error: outcome.reason?.message || String(outcome.reason) });
@@ -533,17 +608,13 @@ export async function runShoppingSearch({
     };
   }
 
-  let combinedCandidates = dedupeCandidates([...candidates, ...cached]);
+  // Never let an old cached price outrank a newly observed offer. Cache is only
+  // a dated fallback if all live sources failed.
+  let combinedCandidates = dedupeCandidates(filterRelevantCandidates(candidates, cleanQuery))
+    .filter((item) => numberOrNull(item.price) && safeUrl(item.sourceUrl));
+  combinedCandidates = visibleShoppingOffers(rankShoppingCandidates(combinedCandidates, preferences));
   if (preferAffiliate) {
-    const ranked = rankShoppingCandidates(combinedCandidates, preferences);
-    const winner = chooseShoppingRecommendation(ranked, preferences);
-    const affiliatedWinner = await attemptAffiliateForWinner(winner, { headless });
-    if (affiliatedWinner && winner && affiliatedWinner.id === winner.id) {
-      if (affiliatedWinner.affiliateUrl) {
-        upsertProduct({ ...affiliatedWinner, status: "affiliate_ready" });
-      }
-      combinedCandidates = combinedCandidates.map((item) => item.id === winner.id ? affiliatedWinner : item);
-    }
+    combinedCandidates = await affiliateShoppingOffers(combinedCandidates, { headless, ...dependencies.affiliateOptions });
   }
 
   return buildResult({

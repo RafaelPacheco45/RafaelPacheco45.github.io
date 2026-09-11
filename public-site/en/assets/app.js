@@ -15,7 +15,7 @@
     utm_content: qs.get("utm_content") || ""
   };
   if (Object.values(attribution).some(Boolean)) {
-    localStorage.setItem("last_attribution", JSON.stringify(attribution));
+    try { localStorage.setItem("last_attribution", JSON.stringify(attribution)); } catch {}
   }
   const lastAttribution = () => {
     try { return JSON.parse(localStorage.getItem("last_attribution") || "{}"); }
@@ -131,13 +131,13 @@
 
     const client = adsenseClient();
     if (!client) {
-      slots.forEach((slot) => slot.classList.add("ad-slot-pending"));
+      slots.forEach((slot) => { slot.hidden = true; slot.setAttribute("aria-hidden", "true"); });
       return;
     }
     if (!validAdsenseClient(client)) {
       slots.forEach((slot) => {
-        slot.classList.add("ad-slot-error");
-        slot.innerHTML = "<span>Advertisement</span><small>Invalid AdSense client. Use ca-pub-0000000000000000.</small>";
+        slot.hidden = true;
+        slot.setAttribute("aria-hidden", "true");
       });
       return;
     }
@@ -620,32 +620,87 @@
       </article>`;
   }
 
+  const searchCopy = {
+    "store": "Store",
+    "partner": "Partner store",
+    "best": "Featured deal",
+    "cheapest": "Lowest price found",
+    "option": "Deal",
+    "view": "View deal",
+    "price": "View price",
+    "checked": "Price checked on",
+    "cachedCard": "Saved deal",
+    "results": "Deals found for",
+    "ready": "Find your next deal",
+    "start": "Enter the product you want and click Search.",
+    "searching": "Searching for",
+    "busy": "Checking available stores. This may take up to 90 seconds.",
+    "empty": "No matching deals were found with these filters. Add a brand or model, or adjust the price range.",
+    "partialEmpty": "Some stores could not be checked, and no offers were found in the stores that responded. Try again shortly.",
+    "errorTitle": "Search could not be completed",
+    "error": "Search is temporarily unavailable. Please try again shortly.",
+    "limited": "Too many searches in a short time. Please wait before trying again.",
+    "timeout": "The search took longer than expected. Please try again shortly.",
+    "noLive": "Current prices could not be checked. These deals are from an earlier search.",
+    "saved": "Some deals are from earlier searches. Confirm the price and availability at the store.",
+    "partial": "Some stores did not respond. These are the deals available from this search.",
+    "finalPrice": "Prices and shipping may change. Confirm the total and availability at the store.",
+    "invalid": "Enter at least 2 characters to search.",
+    "invalidPrice": "Enter valid prices, with the minimum no higher than the maximum.",
+    "waiting": "Click Search to check this product.",
+    "savedFilters": "Preferences saved on this device.",
+    "saveError": "Your browser could not save preferences. Your filters still apply to this search.",
+    "restored": "Default preferences restored.",
+    "activeSaved": "Your saved preferences are active.",
+    "changed": "Filters updated. Applying them to the search.",
+    "priority": "Priority",
+    "balanced": "best balance",
+    "lowest_price": "lowest price",
+    "top_rated": "highest rating",
+    "most_popular": "most popular",
+    "priceFrom": "from",
+    "priceTo": "up to",
+    "minRating": "minimum rating",
+    "preparing": "No deals are available for this search yet. Please try again later."
+  };
+
+  function safeShoppingUrl(value) {
+    try {
+      const url = new URL(String(value || '').trim());
+      return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+    } catch { return ''; }
+  }
+
   function searchProductHref(item) {
-    return item.affiliateUrl || item.sourceUrl || "#";
+    return safeShoppingUrl(item.affiliateUrl) || safeShoppingUrl(item.sourceUrl);
   }
 
   function searchProductCardHTML(item, label) {
     const href = searchProductHref(item);
-    const store = item.store || item.marketplace || "Loja";
-    const signals = Array.isArray(item.qualitySignals) ? item.qualitySignals.slice(0, 3) : [];
+    const store = item.store && String(item.store).toLowerCase() !== 'lomadee' ? item.store : searchCopy.partner;
+    const rating = Number(item.rating);
+    let image = '';
+    try { image = safeShoppingUrl(new URL(item.imageUrl || '', document.baseURI).href); } catch {}
+    const checked = item.checkedAt ? new Date(item.checkedAt) : null;
+    const checkedLabel = checked && Number.isFinite(checked.getTime())
+      ? searchCopy.checked + ' ' + checked.toLocaleString(document.documentElement.lang || 'pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+      : item.isCached ? searchCopy.cachedCard : '';
     return `
       <article class="product-card" data-search-product="${escapeHtml(item.id)}">
-        ${favButtonHTML(item.id, "Favorite this deal")}
-        <a class="product-art" href="${escapeHtml(href)}" target="_blank" rel="sponsored nofollow noopener">
+        <a class="product-art" data-shopping-cta="${escapeHtml(item.id)}" href="${escapeHtml(href)}" target="_blank" rel="sponsored nofollow noopener noreferrer">
           <span class="badge">${escapeHtml(label)}</span>
-          ${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.title)}" width="400" height="300" loading="lazy">` : ""}
+          ${item.imageUrl && image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(item.title)}" width="400" height="300" loading="lazy">` : ''}
         </a>
         <div class="product-body">
-          <span class="category">${escapeHtml(store)} · score ${escapeHtml(item.score || "")}</span>
-          <h3><a href="${escapeHtml(href)}" data-shopping-cta="${escapeHtml(item.id)}" target="_blank" rel="sponsored nofollow noopener">${escapeHtml(item.title)}</a></h3>
-          <p>${escapeHtml(item.why || item.description || item.selectionReason || "")}</p>
+          <span class="category">${escapeHtml(store || searchCopy.store)}</span>
+          <h3><a href="${escapeHtml(href)}" data-shopping-cta="${escapeHtml(item.id)}" target="_blank" rel="sponsored nofollow noopener noreferrer">${escapeHtml(item.title)}</a></h3>
           <div class="price-row">
-            ${item.price ? `<strong class="price">${formatBRL(item.price)}</strong>` : `<strong class="price">View price</strong>`}
-            ${item.rating ? `<span>★ ${escapeHtml(item.rating)}</span>` : ""}
+            <strong class="price">${Number(item.price) > 0 ? formatBRL(Number(item.price)) : escapeHtml(searchCopy.price)}</strong>
+            ${rating > 0 && rating <= 5 ? `<span>★ ${escapeHtml(rating)} / 5</span>` : ''}
           </div>
           <div class="product-bottom">
-            <small style="color:var(--muted)">${escapeHtml(signals.join(" · ") || item.reviewLabel || "")}</small>
-            <a class="btn primary${item.affiliateUrl ? " affiliate-link" : ""}" data-shopping-cta="${escapeHtml(item.id)}" href="${escapeHtml(href)}" target="_blank" rel="sponsored nofollow noopener">View deal</a>
+            <small style="color:var(--muted)">${escapeHtml(checkedLabel)}</small>
+            <a class="btn primary" data-shopping-cta="${escapeHtml(item.id)}" href="${escapeHtml(href)}" target="_blank" rel="sponsored nofollow noopener noreferrer">${escapeHtml(searchCopy.view)}</a>
           </div>
         </div>
       </article>`;
@@ -653,65 +708,46 @@
 
   function bindShoppingResultLinks(root, items) {
     const byId = new Map(items.map((item) => [String(item.id), item]));
-    root.querySelectorAll("[data-shopping-cta]").forEach((el) => {
+    root.querySelectorAll('[data-shopping-cta]').forEach((el) => {
       const item = byId.get(String(el.dataset.shoppingCta));
       if (!item) return;
-      el.addEventListener("click", (ev) => {
-        const href = searchProductHref(item);
-        track(item.affiliateUrl ? "affiliate_click" : "marketplace_click", {
-          product: item.id,
-          store: item.store || item.marketplace,
-          value: item.price || 0,
-          currency: "BRL",
-          source: "shopping_search",
-          attribution: lastAttribution()
+      el.addEventListener('click', (ev) => {
+        if (!searchProductHref(item)) { ev.preventDefault(); return; }
+        track(safeShoppingUrl(item.affiliateUrl) ? 'affiliate_click' : 'marketplace_click', {
+          product: item.id, store: item.store || item.marketplace, value: Number(item.price) || 0,
+          currency: 'BRL', source: 'shopping_search', attribution: lastAttribution()
         });
-        if (!href || href === "#") {
-          ev.preventDefault();
-          alert("We don't have a secure link for this offer yet.");
-        }
       });
     });
   }
 
   function renderShoppingSearchResult(data, query) {
-    const grid = document.getElementById("buscaGrid");
-    const empty = document.getElementById("buscaEmpty");
-    const title = document.getElementById("buscaResultadosTitle");
+    const grid = document.getElementById('buscaGrid');
+    const empty = document.getElementById('buscaEmpty');
+    const title = document.getElementById('buscaResultadosTitle');
+    const status = document.getElementById('buscaStatus');
     if (!grid) return false;
-    const cards = [];
-    const productsForTracking = [];
-    const shownProducts = new Set();
-    const addProductCard = (item, label) => {
-      if (!item) return false;
-      const key = [item.title, item.store || item.marketplace, item.price]
-        .map((value) => String(value ?? "").trim().toLowerCase())
-        .join("|") || item.sourceUrl || item.id || item.affiliateUrl;
-      if (!key || shownProducts.has(key)) return false;
-      shownProducts.add(key);
-      cards.push(searchProductCardHTML(item, label));
-      productsForTracking.push(item);
+    const items = Array.isArray(data.offers) ? data.offers : [data.recommendation, data.cheapest, ...(Array.isArray(data.alternatives) ? data.alternatives : [])];
+    const seen = new Set();
+    const shown = items.filter((item) => {
+      if (!item || !item.title || !searchProductHref(item)) return false;
+      const key = [item.title, item.store || item.marketplace, item.price].map((value) => String(value ?? '').trim().toLowerCase()).join('|');
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
-    };
-    addProductCard(data.recommendation, "Best choice");
-    addProductCard(data.cheapest, "Lowest price");
-    let alternativeIndex = 0;
-    for (const item of data.alternatives || []) {
-      if (shownProducts.size >= 6) break;
-      if (addProductCard(item, alternativeIndex === 0 ? "Alternative" : "Option")) alternativeIndex += 1;
-    }
-    if (data.comparison) {
-      cards.push(comparisonCardHTML(data.comparison));
-    }
-    if (!cards.length) return false;
+    }).slice(0, 4);
+    if (!shown.length) return false;
     if (empty) empty.hidden = true;
-    if (title) {
-      title.textContent = data.mode === "live"
-        ? `Best options found for "${query}"`
-        : `Resultados salvos para "${query}"`;
-    }
-    grid.innerHTML = cards.join("");
-    bindShoppingResultLinks(grid, productsForTracking);
+    if (title) title.textContent = searchCopy.results + ' “' + query + '”';
+    const cached = data.isCached || shown.some((item) => item.isCached) || (data.mode && data.mode !== 'live');
+    const partial = Array.isArray(data.sourceStatus) && data.sourceStatus.some((source) => source.status === 'error');
+    if (status) status.textContent = [data.mode === 'cache_after_live_error' ? searchCopy.noLive : cached ? searchCopy.saved : '', partial ? searchCopy.partial : '', searchCopy.finalPrice].filter(Boolean).join(' ');
+    grid.innerHTML = shown.map((item) => {
+      const label = item.id && item.id === data.recommendation?.id ? searchCopy.best
+        : item.id && item.id === data.cheapest?.id ? searchCopy.cheapest : searchCopy.option;
+      return searchProductCardHTML(item, label);
+    }).join('');
+    bindShoppingResultLinks(grid, shown);
     return true;
   }
 
@@ -727,181 +763,194 @@
     return comparisonsIndexCache;
   }
 
-  function renderBuscaResults(list, query) {
-    const grid = document.getElementById("buscaGrid");
-    const empty = document.getElementById("buscaEmpty");
-    const title = document.getElementById("buscaResultadosTitle");
-    if (!grid) return;
-    if (!list.length) {
-      grid.innerHTML = "";
-      if (empty) empty.hidden = false;
-      if (title) title.textContent = query ? `Nothing found for "${query}"` : "Published comparisons";
-      return;
-    }
-    if (empty) empty.hidden = true;
-    if (title) title.textContent = query ? `Results for "${query}"` : "Published comparisons";
-    grid.innerHTML = list.map(comparisonCardHTML).join("");
-  }
-
-  async function setupBuscaPage() {
-    const form = document.getElementById("buscaForm");
-    const input = document.getElementById("buscaInput");
-    if (!input) return;
-    const index = await loadComparisonsIndex();
-
-    const FILTERS_KEY = "aa_saved_filters";
-    const categorySelect = document.getElementById("filterCategoria");
-    const priceMinInput = document.getElementById("filterPrecoMin");
-    const priceMaxInput = document.getElementById("filterPrecoMax");
-    const storeChecks = Array.from(document.querySelectorAll("#buscaFilters .filter-stores input[type=checkbox]"));
-    const saveBtn = document.getElementById("filterSaveBtn");
-    const clearBtn = document.getElementById("filterClearBtn");
-    const savedHint = document.getElementById("filterSavedHint");
-
-    if (categorySelect) {
-      const categories = Array.from(new Set(index.map((item) => item.category).filter(Boolean))).sort();
-      categorySelect.innerHTML = `<option value="">Todas as categorias</option>` +
-        categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-    }
+  function setupBuscaPage() {
+    const form = document.getElementById('buscaForm');
+    const input = document.getElementById('buscaInput');
+    const grid = document.getElementById('buscaGrid');
+    const empty = document.getElementById('buscaEmpty');
+    const title = document.getElementById('buscaResultadosTitle');
+    const status = document.getElementById('buscaStatus');
+    if (!input || !grid) return;
+    const FILTERS_KEY = 'aa_search_preferences_v2';
+    const LEGACY_FILTERS_KEY = 'aa_saved_filters';
+    const prioritySelect = document.getElementById('filterPrioridade');
+    const priceMinInput = document.getElementById('filterPrecoMin');
+    const priceMaxInput = document.getElementById('filterPrecoMax');
+    const minRatingSelect = document.getElementById('filterNotaMin');
+    const storeChecks = Array.from(document.querySelectorAll('#buscaFilters .filter-stores input[type=checkbox]'));
+    const saveBtn = document.getElementById('filterSaveBtn');
+    const clearBtn = document.getElementById('filterClearBtn');
+    const savedHint = document.getElementById('filterSavedHint');
+    const submit = form?.querySelector('[type=submit]');
+    let activeRequest = null;
+    let searchVersion = 0;
+    let filterTimer = null;
+    let lastQuery = '';
 
     function readFilterState() {
       return {
-        category: categorySelect ? categorySelect.value : "",
-        priceMin: priceMinInput && priceMinInput.value !== "" ? Number(priceMinInput.value) : null,
-        priceMax: priceMaxInput && priceMaxInput.value !== "" ? Number(priceMaxInput.value) : null,
-        stores: storeChecks.filter((c) => c.checked).map((c) => c.value)
+        priority: prioritySelect?.value || 'balanced',
+        priceMin: priceMinInput && priceMinInput.value !== '' ? Number(priceMinInput.value) : null,
+        priceMax: priceMaxInput && priceMaxInput.value !== '' ? Number(priceMaxInput.value) : null,
+        minRating: minRatingSelect && minRatingSelect.value !== '' ? Number(minRatingSelect.value) : null,
+        stores: storeChecks.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value)
       };
     }
 
-    function applyFilterState(state) {
-      if (!state) return;
-      if (categorySelect && state.category) categorySelect.value = state.category;
-      if (priceMinInput && state.priceMin !== undefined && state.priceMin !== null) priceMinInput.value = state.priceMin;
-      if (priceMaxInput && state.priceMax !== undefined && state.priceMax !== null) priceMaxInput.value = state.priceMax;
-      if (Array.isArray(state.stores) && storeChecks.length) {
-        storeChecks.forEach((c) => { c.checked = state.stores.includes(c.value); });
-      }
-    }
-
-    function loadSavedFilters() {
-      try { return JSON.parse(localStorage.getItem(FILTERS_KEY) || "null"); }
-      catch { return null; }
-    }
-
-    function applyControlFilters(list) {
+    function updatePreferenceSummary() {
+      const target = document.getElementById('activePreferencesSummary');
       const state = readFilterState();
-      return list.filter((item) => {
-        if (state.category && item.category !== state.category) return false;
-        if (state.priceMin !== null && Number.isFinite(state.priceMin) && (item.price || 0) < state.priceMin) return false;
-        if (state.priceMax !== null && Number.isFinite(state.priceMax) && item.price && item.price > state.priceMax) return false;
-        if (state.stores.length && storeChecks.length && !state.stores.includes(item.store || "mercadolivre")) return false;
-        return true;
-      });
+      if (!target) return;
+      const parts = [searchCopy.priority + ': ' + (searchCopy[state.priority] || searchCopy.balanced)];
+      if (state.priceMin !== null) parts.push(searchCopy.priceFrom + ' ' + formatBRL(state.priceMin));
+      if (state.priceMax !== null) parts.push(searchCopy.priceTo + ' ' + formatBRL(state.priceMax));
+      if (state.minRating !== null) parts.push(searchCopy.minRating + ' ' + state.minRating);
+      target.textContent = parts.join(' · ') + '.';
     }
 
-    function filterList(q) {
-      const needle = q.trim().toLowerCase();
-      const base = needle
-        ? index.filter((item) => `${item.title} ${item.query} ${item.category}`.toLowerCase().includes(needle))
-        : index;
-      return applyControlFilters(base);
+    function setBusy(busy) {
+      grid.setAttribute('aria-busy', String(busy));
+      if (submit) submit.disabled = busy;
     }
 
-    function refreshResults() {
-      renderBuscaResults(filterList(input.value), input.value.trim());
+    function cancelSearch() {
+      searchVersion += 1;
+      clearTimeout(filterTimer);
+      if (activeRequest) activeRequest.abort();
+      activeRequest = null;
+      setBusy(false);
     }
 
-    const savedFilters = loadSavedFilters();
-    if (savedFilters) {
-      applyFilterState(savedFilters);
-      if (savedHint) savedHint.hidden = false;
-    }
-
-    renderBuscaResults(filterList(input.value), "");
-
-    input.addEventListener("input", refreshResults);
-    if (categorySelect) categorySelect.addEventListener("change", refreshResults);
-    if (priceMinInput) priceMinInput.addEventListener("input", refreshResults);
-    if (priceMaxInput) priceMaxInput.addEventListener("input", refreshResults);
-    storeChecks.forEach((c) => c.addEventListener("change", refreshResults));
-
-    if (saveBtn) saveBtn.addEventListener("click", () => {
-      localStorage.setItem(FILTERS_KEY, JSON.stringify(readFilterState()));
-      if (savedHint) savedHint.hidden = false;
-      track("filter_save", readFilterState());
-    });
-    if (clearBtn) clearBtn.addEventListener("click", () => {
-      localStorage.removeItem(FILTERS_KEY);
-      if (categorySelect) categorySelect.value = "";
-      if (priceMinInput) priceMinInput.value = "";
-      if (priceMaxInput) priceMaxInput.value = "";
-      storeChecks.forEach((c) => { c.checked = true; });
-      if (savedHint) savedHint.hidden = true;
-      refreshResults();
-    });
-
-    async function runSearch(q) {
-      if (!q) return;
-      const empty = document.getElementById("buscaEmpty");
-      const title = document.getElementById("buscaResultadosTitle");
-      if (empty) empty.hidden = true;
-      if (title) title.textContent = `Buscando "${q}"...`;
-      try {
-        const res = await fetch(publicApiUrl("/api/shopping-search"), {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ query: q, category: "geral", live: true, limit: 8 })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (renderShoppingSearchResult(data, q)) {
-            track("shopping_search", { query: q, mode: data.mode, status: data.status });
-            return;
-          }
-          if (empty && data.queued) {
-            empty.hidden = false;
-            empty.querySelector("p").textContent = `We're generating the comparison for "${q}" right now. This takes a few minutes — check back and search again shortly.`;
-            return;
-          }
-        }
-      } catch {
-        // Site estatico sem backend Node: usa o indice publicado abaixo.
+    function showMessage(message, heading = searchCopy.ready) {
+      grid.innerHTML = '';
+      if (title) title.textContent = heading;
+      if (status) status.textContent = '';
+      if (empty) {
+        empty.hidden = false;
+        const paragraph = empty.querySelector('p');
+        if (paragraph) paragraph.textContent = message;
       }
-      const targetSlug = slugifyClient(q);
-      const exact = index.find((item) => item.slug === targetSlug || item.query.toLowerCase() === q.toLowerCase());
-      if (exact) {
-        location.href = `comparativos/${encodeURIComponent(exact.slug)}.html`;
+    }
+
+    function showHint(message, saved = false) {
+      if (!savedHint) return;
+      savedHint.hidden = false;
+      savedHint.textContent = message;
+      savedHint.classList.toggle('is-saved', saved);
+    }
+
+    try {
+      const state = JSON.parse(localStorage.getItem(FILTERS_KEY) || localStorage.getItem(LEGACY_FILTERS_KEY) || 'null');
+      if (state && typeof state === 'object') {
+        if (prioritySelect && ['balanced', 'lowest_price', 'top_rated', 'most_popular'].includes(state.priority)) prioritySelect.value = state.priority;
+        if (priceMinInput && state.priceMin != null && Number.isFinite(Number(state.priceMin)) && Number(state.priceMin) >= 0) priceMinInput.value = state.priceMin;
+        if (priceMaxInput && state.priceMax != null && Number.isFinite(Number(state.priceMax)) && Number(state.priceMax) >= 0) priceMaxInput.value = state.priceMax;
+        if (minRatingSelect && state.minRating != null) minRatingSelect.value = state.minRating;
+        if (Array.isArray(state.stores) && storeChecks.some((checkbox) => state.stores.includes(checkbox.value))) {
+          storeChecks.forEach((checkbox) => { checkbox.checked = state.stores.includes(checkbox.value); });
+        }
+        showHint(searchCopy.activeSaved, true);
+      }
+    } catch {}
+
+    async function runSearch(rawQuery) {
+      cancelSearch();
+      const version = searchVersion;
+      const query = String(rawQuery || '').trim().slice(0, 160);
+      updatePreferenceSummary();
+      if (!query) { lastQuery = ''; showMessage(searchCopy.start); return; }
+      if (query.length < 2) { showMessage(searchCopy.invalid); return; }
+      const preferences = readFilterState();
+      const invalidPrice = [preferences.priceMin, preferences.priceMax].some((price) => price !== null && (!Number.isFinite(price) || price < 0));
+      if (invalidPrice || (preferences.priceMin !== null && preferences.priceMax !== null && preferences.priceMin > preferences.priceMax)) {
+        showMessage(searchCopy.invalidPrice);
         return;
       }
-      const matches = filterList(q);
-      renderBuscaResults(matches, q);
-      if (!matches.length) {
-        track("search_miss", { query: q });
-        const empty = document.getElementById("buscaEmpty");
-        fetch(publicApiUrl("/api/search-miss"), {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ query: q })
-        }).then((res) => res.json()).then((data) => {
-          if (empty && data && data.queued) {
-            empty.querySelector("p").textContent = `We're generating the comparison for "${q}" right now. This takes a few minutes — check back and search again shortly.`;
-          }
-        }).catch(() => {});
+      lastQuery = query;
+      try {
+        const url = new URL(location.href);
+        url.searchParams.set('q', query);
+        history.replaceState(null, '', url);
+      } catch {}
+      grid.innerHTML = '';
+      if (empty) empty.hidden = true;
+      if (title) title.textContent = searchCopy.searching + ' “' + query + '”…';
+      if (status) status.textContent = searchCopy.busy;
+      setBusy(true);
+      const controller = new AbortController();
+      activeRequest = controller;
+      let timedOut = false;
+      const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 90000);
+      try {
+        const res = await fetch(publicApiUrl('/api/shopping-search'), {
+          method: 'POST', headers: { 'content-type': 'application/json' }, signal: controller.signal,
+          body: JSON.stringify({ query, category: 'geral', live: true, limit: 8, priority: preferences.priority, priceMin: preferences.priceMin, priceMax: preferences.priceMax, minRating: preferences.minRating, marketplaces: preferences.stores })
+        });
+        if (version !== searchVersion) return;
+        if (!res.ok) {
+          showMessage(res.status === 429 ? searchCopy.limited : res.status === 400 ? searchCopy.invalid : searchCopy.error, searchCopy.errorTitle);
+          return;
+        }
+        const data = await res.json();
+        if (version !== searchVersion) return;
+        if (!data || data.ok === false) { showMessage(searchCopy.error, searchCopy.errorTitle); return; }
+        if (!renderShoppingSearchResult(data, query)) {
+          const partial = data.liveError || (Array.isArray(data.sourceStatus) && data.sourceStatus.some((source) => source.status === 'error'));
+          showMessage(partial ? searchCopy.partialEmpty : data.queued ? searchCopy.preparing : searchCopy.empty, searchCopy.results + ' “' + query + '”');
+        }
+        track('shopping_search', { query, mode: data.mode, status: data.status });
+      } catch (error) {
+        if (version !== searchVersion) return;
+        showMessage(timedOut ? searchCopy.timeout : searchCopy.error, searchCopy.errorTitle);
+      } finally {
+        clearTimeout(timeout);
+        if (version === searchVersion) { activeRequest = null; setBusy(false); }
       }
     }
 
-    if (form) {
-      form.addEventListener("submit", (ev) => {
-        ev.preventDefault();
-        runSearch(input.value.trim());
-      });
+    function filtersChanged() {
+      cancelSearch();
+      updatePreferenceSummary();
+      showHint(searchCopy.changed);
+      if (lastQuery && input.value.trim() === lastQuery) {
+        showMessage(searchCopy.changed);
+        filterTimer = setTimeout(() => runSearch(lastQuery), 650);
+      }
     }
 
-    const initialQuery = (qs.get("q") || "").trim();
-    if (initialQuery) {
-      input.value = initialQuery;
-      runSearch(initialQuery);
-    }
+    input.addEventListener('input', () => {
+      cancelSearch();
+      showMessage(input.value.trim() ? searchCopy.waiting : searchCopy.start);
+    });
+    [prioritySelect, minRatingSelect].filter(Boolean).forEach((control) => control.addEventListener('change', filtersChanged));
+    [priceMinInput, priceMaxInput].filter(Boolean).forEach((control) => control.addEventListener('input', filtersChanged));
+    storeChecks.forEach((checkbox) => checkbox.addEventListener('change', () => {
+      if (!storeChecks.some((item) => item.checked)) checkbox.checked = true;
+      filtersChanged();
+    }));
+    if (saveBtn) saveBtn.addEventListener('click', () => {
+      try {
+        localStorage.setItem(FILTERS_KEY, JSON.stringify(readFilterState()));
+        localStorage.removeItem(LEGACY_FILTERS_KEY);
+        showHint(searchCopy.savedFilters, true);
+      } catch { showHint(searchCopy.saveError); }
+    });
+    if (clearBtn) clearBtn.addEventListener('click', () => {
+      try { localStorage.removeItem(FILTERS_KEY); localStorage.removeItem(LEGACY_FILTERS_KEY); } catch {}
+      if (prioritySelect) prioritySelect.value = 'balanced';
+      if (priceMinInput) priceMinInput.value = '';
+      if (priceMaxInput) priceMaxInput.value = '';
+      if (minRatingSelect) minRatingSelect.value = '';
+      storeChecks.forEach((checkbox) => { checkbox.checked = true; });
+      filtersChanged();
+      showHint(searchCopy.restored);
+    });
+    if (form) form.addEventListener('submit', (ev) => { ev.preventDefault(); runSearch(input.value); });
+    window.addEventListener('pagehide', cancelSearch);
+    updatePreferenceSummary();
+    const initialQuery = (qs.get('q') || '').trim().slice(0, 160);
+    if (initialQuery) { input.value = initialQuery; runSearch(initialQuery); }
+    else showMessage(searchCopy.start);
   }
 
   async function setupFavoritosPage() {

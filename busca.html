@@ -34,9 +34,9 @@
   <main class="page">
     <section class="hero busca-hero">
       <div>
-        <p class="eyebrow">Busca de comparativos</p>
-        <h1>Qual produto você quer comparar hoje?</h1>
-        <p class="lead">Digite o que procura. Mostramos os comparativos com preço e reviews reais que já publicamos — sem enrolação, sem defeito escondido no que recomendamos.</p>
+        <p class="eyebrow">Busca de ofertas</p>
+        <h1>Qual produto você quer encontrar hoje?</h1>
+        <p class="lead">Digite o produto. Consultamos as lojas disponíveis, comparamos as opções e mostramos preços para você conferir no checkout.</p>
         <form class="busca-form" id="buscaForm" role="search">
           <input id="buscaInput" type="search" placeholder="ex: fritadeira eletrica, fone bluetooth..." aria-label="Buscar comparativo" autocomplete="off" />
           <button class="btn primary" type="submit">Buscar</button>
@@ -48,8 +48,9 @@
       <div class="section-head">
         <div>
           <p class="eyebrow">Resultados</p>
-          <h2 id="buscaResultadosTitle">Comparativos publicados</h2>
+          <h2 id="buscaResultadosTitle">Encontre sua próxima oferta</h2>
           <p class="results-context" id="activePreferencesSummary">Prioridade: melhor equilíbrio.</p>
+          <p class="results-context" id="buscaStatus" role="status" aria-live="polite"></p>
         </div>
       </div>
       <section class="search-preferences" id="buscaFilters" aria-labelledby="searchPreferencesTitle">
@@ -63,10 +64,6 @@
         </div>
 
         <div class="preferences-grid">
-          <div class="filter-field">
-            <label for="filterCategoria">Categoria</label>
-            <select id="filterCategoria"><option value="">Todas as categorias</option></select>
-          </div>
           <div class="filter-field">
             <label for="filterPrioridade">Priorizar</label>
             <select id="filterPrioridade">

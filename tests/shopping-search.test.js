@@ -10,13 +10,16 @@ process.env.AUTOBLOG_CHROME_PROFILE = path.join(testDir, "chrome-profile");
 process.env.AUTOBLOG_PUBLIC_SEARCH_ORIGINS = "https://achadoagora.blog.br";
 
 const {
+  affiliateShoppingOffers,
   attemptAffiliateForWinner,
   chooseShoppingRecommendation,
   dedupeCandidates,
-  rankShoppingCandidates
+  rankShoppingCandidates,
+  visibleShoppingOffers
 } = await import("../server/shoppingSearchEngine.js");
 const { createPublicSearchServer } = await import("../server/publicSearchServer.js");
 const { lomadeePriceFromProduct } = await import("../server/adapters/lomadee.js");
+const { isRelevantCandidate } = await import("../server/lib/searchRelevance.js");
 
 function candidate(overrides = {}) {
   return {
@@ -78,6 +81,60 @@ test("oferta repetida com rastreamento diferente aparece uma vez", () => {
   const first = candidate({ id: "one", sourceUrl: "https://loja.example/produto/123?utm_source=a" });
   const duplicate = candidate({ id: "two", sourceUrl: "https://loja.example/produto/123?utm_source=b" });
   assert.deepEqual(dedupeCandidates([first, duplicate]).map((item) => item.id), ["one"]);
+});
+
+test("busca sem fio rejeita produto com fio e entende wireless", () => {
+  assert.equal(isRelevantCandidate({ title: "Mouse gamer RGB com fio" }, "mouse gamer sem fio"), false);
+  assert.equal(isRelevantCandidate({ title: "Mouse gamer wireless RGB" }, "mouse gamer sem fio"), true);
+});
+
+test("acessorio nao vence o produto inteiro, salvo quando solicitado", () => {
+  assert.equal(isRelevantCandidate({ title: "Placa de controle para geladeira Electrolux" }, "geladeira electrolux"), false);
+  assert.equal(isRelevantCandidate({ title: "Geladeira Electrolux Inverter 400 Litros" }, "geladeira electrolux"), true);
+  assert.equal(isRelevantCandidate({ title: "Placa de controle para geladeira Electrolux" }, "placa para geladeira electrolux"), true);
+});
+
+test("busca generica por geladeira rejeita utilidades e pecas que citam geladeira", () => {
+  const query = "geladeira";
+  assert.equal(isRelevantCandidate({ title: "Kit 6 Tampas Panela Silicone Cozinha Geladeira" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Organizador Multiuso Porta Latas Despensa Geladeira" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Gaveta de Legumes Compatível com Geladeira Electrolux" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Borracha de Vedação para Geladeira Brastemp" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Armário Aéreo Geladeira Aurea 80 cm 1 Porta" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Geladeira Portátil para Caminhão 12v 24v" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Cozinha Infantil Magic Forno Geladeira e Acessórios" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Porta Geladeira Madesa Lux 1 Porta Basculante" }, query), false);
+  assert.equal(isRelevantCandidate({ title: "Geladeira Brastemp Frost Free Duplex 375L" }, query), true);
+  assert.equal(isRelevantCandidate({ title: "Electrolux Geladeira Inverter 480 Litros" }, query), true);
+  assert.equal(isRelevantCandidate({ title: "Mini Geladeira Portátil 45 Litros 12v 110v" }, "geladeira portatil"), true);
+});
+
+test("acessorio de geladeira continua pesquisavel quando essa e a intencao", () => {
+  assert.equal(isRelevantCandidate({ title: "Organizador Multiuso para Geladeira" }, "organizador para geladeira"), true);
+  assert.equal(isRelevantCandidate({ title: "Kit 6 Tampas para Potes de Geladeira" }, "tampas para geladeira"), true);
+  assert.equal(isRelevantCandidate({ title: "Armário Aéreo para Geladeira 80 cm" }, "armario para geladeira"), true);
+  assert.equal(isRelevantCandidate({ title: "Porta de Geladeira Brastemp Original" }, "porta de geladeira"), true);
+});
+
+test("somente ofertas exibidas sao afiliadas sem mudar a ordem", async () => {
+  const candidates = Array.from({ length: 5 }, (_, index) => candidate({
+    id: `offer-${index}`,
+    sourceUrl: `https://www.mercadolivre.com.br/produto/p/MLB12${index}`,
+    title: `Mouse gamer sem fio modelo ${index}`,
+    price: 100 + index,
+    rating: 4.9 - index * 0.1
+  }));
+  const visible = visibleShoppingOffers(rankShoppingCandidates(candidates));
+  const attempted = [];
+  const affiliated = await affiliateShoppingOffers(visible, {
+    mercadoLivreGenerator: async (item) => {
+      attempted.push(item.id);
+      return `https://meli.la/${item.id}`;
+    }
+  });
+  assert.deepEqual(affiliated.map((item) => item.id), visible.map((item) => item.id));
+  assert.deepEqual(attempted, visible.map((item) => item.id));
+  assert.ok(affiliated.every((item) => item.affiliateReady && item.affiliateUrl.startsWith("https://meli.la/")));
 });
 
 test("gateway expoe somente busca, aplica CORS e forca busca ao vivo", async (t) => {

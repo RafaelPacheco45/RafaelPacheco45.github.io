@@ -194,12 +194,12 @@ function validateRootPages() {
   if (exists("busca.html") && exists("assets/app.js")) {
     const searchHtml = read("busca.html");
     const appJs = read("assets/app.js");
-    const controls = ["filterCategoria", "filterPrioridade", "filterPrecoMin", "filterPrecoMax", "filterNotaMin", "filterSaveBtn"];
+    const controls = ["filterPrioridade", "filterPrecoMin", "filterPrecoMax", "filterNotaMin", "filterSaveBtn", "buscaStatus"];
     const missingControls = controls.filter((id) => !searchHtml.includes(`id="${id}"`));
     if (missingControls.length || !appJs.includes("aa_search_preferences_v2")) {
       fail("Busca personalizada", missingControls.length ? `controles ausentes: ${missingControls.join(", ")}` : "persistencia das preferencias ausente");
     } else {
-      ok("Busca personalizada", "prioridade, categoria, preco, nota e lojas conectados");
+      ok("Busca personalizada", "prioridade, preco, nota, lojas e estado da consulta conectados");
     }
   }
 }

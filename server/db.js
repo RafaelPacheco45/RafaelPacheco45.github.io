@@ -123,11 +123,21 @@ CREATE TABLE IF NOT EXISTS campaign_metrics (
 );
 `);
 
+// Search metadata must survive link generation and later cache reads. Existing
+// products are preserved; only fresh searches populate price observation time.
+const productColumns = new Set(db.prepare("PRAGMA table_info(products)").all().map((column) => column.name));
+for (const column of ["store", "organization_id", "observed_at"]) {
+  if (!productColumns.has(column)) db.exec(`ALTER TABLE products ADD COLUMN ${column} TEXT`);
+}
+
 function rowToProduct(row) {
   if (!row) return null;
   return {
     id: row.id,
     marketplace: row.marketplace,
+    store: row.store || "",
+    organizationId: row.organization_id || "",
+    observedAt: row.observed_at || "",
     sourceUrl: row.source_url,
     affiliateUrl: row.affiliate_url || "",
     title: row.title,
@@ -256,14 +266,19 @@ export function upsertProduct(input) {
     INSERT INTO products (
       id, marketplace, source_url, affiliate_url, title, brand, category, badge,
       description, why, price, old_price, rating, review_label, image_url, local_image_path,
-      specs_json, pros_json, cons_json, status, created_at, updated_at, published_at, last_error
+      specs_json, pros_json, cons_json, status, created_at, updated_at, published_at, last_error,
+      store, organization_id, observed_at
     ) VALUES (
       @id, @marketplace, @sourceUrl, @affiliateUrl, @title, @brand, @category, @badge,
       @description, @why, @price, @oldPrice, @rating, @reviewLabel, @imageUrl, @localImagePath,
-      @specsJson, @prosJson, @consJson, @status, @createdAt, @updatedAt, @publishedAt, @lastError
+      @specsJson, @prosJson, @consJson, @status, @createdAt, @updatedAt, @publishedAt, @lastError,
+      @store, @organizationId, @observedAt
     )
     ON CONFLICT(id) DO UPDATE SET
       marketplace = excluded.marketplace,
+      store = COALESCE(excluded.store, products.store),
+      organization_id = COALESCE(excluded.organization_id, products.organization_id),
+      observed_at = COALESCE(excluded.observed_at, products.observed_at),
       source_url = excluded.source_url,
       affiliate_url = COALESCE(excluded.affiliate_url, products.affiliate_url),
       title = excluded.title,
@@ -288,6 +303,9 @@ export function upsertProduct(input) {
   `).run({
     id: input.id,
     marketplace: input.marketplace || existing?.marketplace || "mercadolivre",
+    store: input.store || null,
+    organizationId: input.organizationId || null,
+    observedAt: input.observedAt || null,
     sourceUrl: input.sourceUrl || existing?.sourceUrl || "",
     affiliateUrl: input.affiliateUrl || null,
     title: input.title || existing?.title || "Produto sem titulo",

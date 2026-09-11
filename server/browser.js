@@ -120,17 +120,27 @@ export async function withBrowser(fn, options = {}) {
     headless: options.headless === true,
     viewport: { width: 1366, height: 900 },
     acceptDownloads: true,
+    timeout: 20000,
     args: [
       "--no-first-run",
       "--disable-dev-shm-usage",
       "--disable-blink-features=AutomationControlled"
     ]
   });
+  let deadline;
   try {
     const page = context.pages()[0] || await context.newPage();
     page.setDefaultTimeout(options.timeoutMs || 30000);
-    return await fn({ context, page, executablePath });
+    const operation = fn({ context, page, executablePath });
+    if (!options.deadlineMs) return await operation;
+    return await Promise.race([
+      operation,
+      new Promise((_, reject) => {
+        deadline = setTimeout(() => reject(new Error("A consulta a loja excedeu o tempo disponivel.")), options.deadlineMs);
+      })
+    ]);
   } finally {
+    clearTimeout(deadline);
     await context.close().catch(() => {});
   }
 }
