@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rafaelpacheco45.github.io/sitemap.xml
+Sitemap: https://achadoagora.blog.br/sitemap.xml
