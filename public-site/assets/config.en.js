@@ -2,6 +2,7 @@ window.SITE_CONFIG = {
   brand: "Achado Agora",
   tagline: "Verified deals. Click only on what's worth it.",
   siteUrl: "https://achadoagora.blog.br/en",
+  searchApiBase: "",
   contactEmail: "contato@achadoagora.com.br",
   priceCheckedOn: "2026-08-30",
   metaPixelId: "",

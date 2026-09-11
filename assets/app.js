@@ -2,6 +2,11 @@
   const cfg = window.SITE_CONFIG || { products: [] };
   const products = Array.isArray(cfg.products) ? cfg.products : [];
 
+  function publicApiUrl(pathname) {
+    const base = String(cfg.searchApiBase || "").trim().replace(/\/+$/, "");
+    return base ? `${base}${pathname}` : pathname;
+  }
+
   const qs = new URLSearchParams(location.search);
   const attribution = {
     utm_source: qs.get("utm_source") || "",
@@ -902,7 +907,7 @@
       const preferences = readFilterState();
       updatePreferenceSummary();
       try {
-        const res = await fetch("/api/shopping-search", {
+        const res = await fetch(publicApiUrl("/api/shopping-search"), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
@@ -950,7 +955,7 @@
           return;
         }
         track("search_miss", { query: q });
-        fetch("/api/search-miss", {
+        fetch(publicApiUrl("/api/search-miss"), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ query: q, category: preferences.category || "geral" })

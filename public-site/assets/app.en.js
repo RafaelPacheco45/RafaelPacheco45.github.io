@@ -2,6 +2,11 @@
   const cfg = window.SITE_CONFIG || { products: [] };
   const products = Array.isArray(cfg.products) ? cfg.products : [];
 
+  function publicApiUrl(pathname) {
+    const base = String(cfg.searchApiBase || "").trim().replace(/\/+$/, "");
+    return base ? `${base}${pathname}` : pathname;
+  }
+
   const qs = new URLSearchParams(location.search);
   const attribution = {
     utm_source: qs.get("utm_source") || "",
@@ -835,7 +840,7 @@
       if (empty) empty.hidden = true;
       if (title) title.textContent = `Buscando "${q}"...`;
       try {
-        const res = await fetch("/api/shopping-search", {
+        const res = await fetch(publicApiUrl("/api/shopping-search"), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ query: q, category: "geral", live: true, limit: 8 })
@@ -866,7 +871,7 @@
       if (!matches.length) {
         track("search_miss", { query: q });
         const empty = document.getElementById("buscaEmpty");
-        fetch("/api/search-miss", {
+        fetch(publicApiUrl("/api/search-miss"), {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ query: q })

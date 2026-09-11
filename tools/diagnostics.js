@@ -48,6 +48,7 @@ const shopeeProducts = products.filter((product) => product.storeKey === "shopee
 const shopeeSearchLinks = shopeeProducts.filter((product) => /shopee\.com\.br\/search/i.test(product.affiliateUrl || ""));
 assertCheck("assets/config.js", Boolean(site && Array.isArray(site.products)), `${site.products?.length || 0} produtos`);
 check("siteUrl", Boolean(site.siteUrl || config.siteUrl), site.siteUrl || config.siteUrl || "vazio");
+warnCheck("API da busca publica", Boolean(site.searchApiBase), site.searchApiBase ? "configurada" : "vazia; o site publicado usa somente resultados salvos");
 check("Facebook Page", Boolean(config.facebookPageUrl), config.facebookPageUrl ? "configurada" : "vazio");
 check(
   "ML links oficiais",

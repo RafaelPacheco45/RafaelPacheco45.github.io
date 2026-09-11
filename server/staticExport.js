@@ -306,6 +306,7 @@ function staticUrls(siteUrl) {
 function writePublicConfig(siteUrl) {
   const cfg = loadSiteConfig();
   cfg.siteUrl = siteUrl || cfg.siteUrl || config.siteUrl || "";
+  cfg.searchApiBase = process.env.AUTOBLOG_PUBLIC_SEARCH_API_URL || cfg.searchApiBase || "";
   cfg.staticProductPages = true;
   cfg.staticProductPagesBase = "ofertas";
   fs.writeFileSync(path.join(outputDir, "assets", "config.js"), `window.SITE_CONFIG = ${JSON.stringify(cfg, null, 2)};\n`, "utf8");

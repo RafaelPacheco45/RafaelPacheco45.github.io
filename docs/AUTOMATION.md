@@ -44,7 +44,7 @@ buscar candidatos no Mercado Livre -> escolher #1 (sempre Mercado Livre, com lin
   -> publicar em comparativos/<slug>.html -> atualizar comparativos.html e assets/comparisons-index.json
 ```
 
-Regra travada no codigo (nao so no prompt): o item #1 e sempre Mercado Livre e nunca mostra "contras"; os itens #2 e #3 so mostram "contras" quando vieram de review real capturada, senao aparece um aviso generico para conferir no checkout. Se o link de afiliado do item #1 falhar ao gerar, a tarefa falha e nada e publicado.
+Regra travada no codigo (nao so no prompt): o item #1 e sempre Mercado Livre e nunca mostra "contras"; os itens #2 e #3 so mostram "contras" quando vieram de review real capturada, senao aparece um aviso generico para conferir no checkout. O vencedor e escolhido antes da afiliacao; se o link do item #1 falhar, o comparativo continua util com o link direto e registra a falha para nova tentativa.
 
 A pagina publica `busca.html` deixa o visitante pesquisar por titulo entre os comparativos ja publicados. Buscas sem resultado ficam registradas em `/api/events` e podem enfileirar um comparativo por `POST /api/search-miss`.
 
@@ -57,14 +57,14 @@ Fluxo esperado:
 ```text
 visitante pesquisa -> motor confere cache/comparativos/produtos salvos
   -> se busca ao vivo estiver liberada, consulta o Mercado Livre pelo navegador
-  -> ranqueia por loja confiavel, nota, volume de vendas/avaliacoes, preco e link afiliado
-  -> tenta gerar link oficial de afiliado para o vencedor Mercado Livre
+  -> ranqueia por loja confiavel, nota, volume de vendas/avaliacoes e preco
+  -> so depois da escolha tenta gerar link oficial de afiliado para o vencedor Mercado Livre
   -> devolve melhor escolha, menor preco, melhor avaliado e alternativas
 ```
 
 Regras importantes:
 
-- O ranking nao deve empurrar um afiliado ruim. Produto afiliavel ganha preferencia so quando fica dentro de uma margem razoavel de qualidade e preco.
+- A afiliacao nunca altera score, ordem ou vencedor. O motor escolhe por qualidade/preco e so depois tenta monetizar a opcao vencedora.
 - A busca ao vivo usa Playwright + perfil `data/chrome-profile`, entao depende do login no Mercado Livre Afiliados e da tela do gerador continuar compativel.
 - Em hospedagem estatica pura, `/api/shopping-search` nao existe; a pagina `busca.html` cai automaticamente para os comparativos ja publicados.
 - Em backend publico, habilite busca ao vivo explicitamente com `AUTOBLOG_PUBLIC_LIVE_SEARCH=1`. Localmente ela fica ativa por padrao para teste.

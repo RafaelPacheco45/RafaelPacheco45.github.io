@@ -171,7 +171,6 @@ function scoreCandidate(candidate, medianPrice) {
     Math.min(34, (rating / 5) * 34) +
     Math.min(18, Math.log10(volume + 1) * 5) +
     priceScore(candidate, medianPrice) +
-    (hasAffiliateLink(candidate) ? 8 : canGenerateAffiliate(candidate) ? 4 : 0) +
     (candidate.imageUrl ? 2 : 0);
   return Math.round(score * 10) / 10;
 }
@@ -186,13 +185,11 @@ function reasonsFor(candidate, medianPrice) {
   if (volume >= 1000) reasons.push("muito vendido/avaliado");
   else if (volume >= 100) reasons.push("volume razoavel de prova social");
   if (price && medianPrice && price <= medianPrice) reasons.push("preco abaixo ou perto da mediana");
-  if (hasAffiliateLink(candidate)) reasons.push("link afiliado pronto");
-  else if (canGenerateAffiliate(candidate)) reasons.push("afiliavel pelo Mercado Livre");
   reasons.push(`loja confiavel: ${marketplaceLabel(candidate.marketplace)}`);
   return reasons;
 }
 
-function decorateCandidates(items, preferences = {}) {
+export function rankShoppingCandidates(items, preferences = {}) {
   const normalized = normalizeSearchPreferences(preferences);
   const filtered = items.filter((item) => {
     const price = numberOrNull(item.price);
@@ -226,7 +223,7 @@ function decorateCandidates(items, preferences = {}) {
     });
 }
 
-function chooseRecommendation(ranked, preferences = {}, preferAffiliate = true) {
+export function chooseShoppingRecommendation(ranked, preferences = {}) {
   const best = ranked[0] || null;
   if (!best) return null;
   const priority = normalizeSearchPreferences(preferences).priority;
@@ -236,22 +233,7 @@ function chooseRecommendation(ranked, preferences = {}, preferAffiliate = true) 
     top_rated: "melhor avaliacao dentro das preferencias definidas",
     most_popular: "maior volume de avaliacoes dentro das preferencias definidas"
   };
-  if (!preferAffiliate || priority !== "balanced") {
-    return { ...best, selectionReason: priorityReasons[priority] };
-  }
-  const affiliateCandidate = ranked.find((item) => item.affiliateReady || item.affiliateEligible);
-  if (!affiliateCandidate || affiliateCandidate.id === best.id) {
-    return { ...best, selectionReason: priorityReasons.balanced };
-  }
-
-  const bestPrice = numberOrNull(best.price);
-  const affPrice = numberOrNull(affiliateCandidate.price);
-  const closeScore = affiliateCandidate.score >= best.score - 8;
-  const closePrice = !bestPrice || !affPrice || affPrice <= bestPrice * 1.12;
-  if (closeScore && closePrice) {
-    return { ...affiliateCandidate, selectionReason: "melhor opcao afiliavel dentro da margem de qualidade/preco" };
-  }
-  return { ...best, selectionReason: "melhor pontuacao geral; afiliado ficou abaixo da margem" };
+  return { ...best, selectionReason: priorityReasons[priority] };
 }
 
 function cheapestCandidate(ranked) {
@@ -334,8 +316,8 @@ function summarizeSources(candidates, extra = []) {
 
 function buildResult({ query, category, mode, candidates, comparison = null, sourceStatus = [], liveAvailable = false, queued = false, preferences = {}, preferAffiliate = true }) {
   const normalizedPreferences = normalizeSearchPreferences(preferences);
-  const ranked = decorateCandidates(candidates, normalizedPreferences);
-  const recommendation = chooseRecommendation(ranked, normalizedPreferences, preferAffiliate);
+  const ranked = rankShoppingCandidates(candidates, normalizedPreferences);
+  const recommendation = chooseShoppingRecommendation(ranked, normalizedPreferences);
   const alternatives = ranked.filter((item) => !recommendation || item.id !== recommendation.id).slice(0, 5);
   return {
     ok: true,
@@ -362,7 +344,7 @@ function buildResult({ query, category, mode, candidates, comparison = null, sou
   };
 }
 
-async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate, preferences }) {
+async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate, preferences, headless }) {
   // O Modo IA do Google (server/adapters/googleAiMode.js) fica de fora da busca
   // ao vivo de proposito: quem faz uma busca em busca.html espera resposta na
   // hora, e o Modo IA pode adicionar dezenas de segundos por causa da cobertura
@@ -370,8 +352,8 @@ async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate,
   // que ja roda em segundo plano sem ninguem esperando na tela.
   return withBrowser(async ({ page }) => {
     const found = await searchMercadoLivreProducts({ query, category, limit, page });
-    const ranked = decorateCandidates(found, preferences);
-    let selected = chooseRecommendation(ranked, preferences, preferAffiliate);
+    const ranked = rankShoppingCandidates(found, preferences);
+    let selected = chooseShoppingRecommendation(ranked, preferences);
     const saved = [];
 
     if (selected && preferAffiliate && canGenerateAffiliate(selected) && !hasAffiliateLink(selected)) {
@@ -426,13 +408,13 @@ async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate,
         count: found.length
       }]
     };
-  }, { timeoutMs: 90000 });
+  }, { timeoutMs: 90000, headless });
 }
 
 async function liveLomadeeSearch({ query, limit, preferAffiliate, preferences }) {
   const found = await searchLomadeeProducts({ query, limit });
-  const ranked = decorateCandidates(found, preferences);
-  let selected = chooseRecommendation(ranked, preferences, preferAffiliate);
+  const ranked = rankShoppingCandidates(found, preferences);
+  let selected = chooseShoppingRecommendation(ranked, preferences);
 
   if (selected && preferAffiliate && canGenerateAffiliate(selected) && !hasAffiliateLink(selected)) {
     try {
@@ -466,7 +448,8 @@ export async function runShoppingSearch({
   priceMin = null,
   priceMax = null,
   minRating = null,
-  marketplaces = []
+  marketplaces = [],
+  headless = false
 }) {
   const cleanQuery = cleanText(query || "");
   if (!cleanQuery) throw new Error("Informe o produto para buscar.");
@@ -490,7 +473,7 @@ export async function runShoppingSearch({
   const acceptsMarketplace = (marketplace) => !preferences.marketplaces.length || preferences.marketplaces.includes(marketplace);
   const sources = [];
   if (acceptsMarketplace("mercadolivre")) {
-    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => liveMercadoLivreSearch({ query: cleanQuery, category, limit, preferAffiliate, preferences }) });
+    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => liveMercadoLivreSearch({ query: cleanQuery, category, limit, preferAffiliate, preferences, headless }) });
   }
   if (config.lomadeeApiKey && acceptsMarketplace("lomadee")) {
     sources.push({ marketplace: "lomadee", label: "Lojas parceiras", run: () => liveLomadeeSearch({ query: cleanQuery, limit, preferAffiliate, preferences }) });

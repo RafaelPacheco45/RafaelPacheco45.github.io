@@ -128,7 +128,15 @@ busca no Mercado Livre -> link afiliado -> post no blog -> rascunho Meta -> post
 
 O destino do anuncio e sempre uma URL do blog com UTM. O clique final para compra continua indo pelo link afiliado dentro do post/pagina. A configuracao publica de monetizacao fica em `assets/config.js` e pode ser atualizada pela API local `/api/site-config/monetization`.
 
-Com o backend Node ativo, `busca.html` tambem tenta usar `/api/shopping-search`: o motor consulta cache/produtos salvos e, quando permitido, faz busca ao vivo no Mercado Livre pelo navegador persistente, ranqueia por confiabilidade, nota, volume e preco, e tenta gerar um link `meli.la` para a melhor opcao afiliavel. No pacote estatico sem Node, a busca continua usando apenas comparativos publicados.
+Com o backend Node ativo, `busca.html` tambem tenta usar `/api/shopping-search`: o motor consulta cache/produtos salvos e, quando permitido, faz busca ao vivo no Mercado Livre pelo navegador persistente. O ranking considera confiabilidade, nota, volume e preco sem usar afiliacao no score; somente depois de escolher a melhor opcao o motor tenta gerar o link `meli.la` dela. No pacote estatico sem Node, a busca continua usando apenas comparativos publicados.
+
+Para expor a busca sem publicar o painel, banco ou perfil do navegador, rode o gateway separado:
+
+```bash
+npm run public-search
+```
+
+Ele escuta apenas em `127.0.0.1:4178`, aceita `POST /api/shopping-search`, restringe a origem, limita buscas por IP, reaproveita resultados por 15 minutos e serializa o navegador. Publique essa porta por um proxy/tunel HTTPS confiavel e defina `searchApiBase` no `assets/config*.js` ou `AUTOBLOG_PUBLIC_SEARCH_API_URL` durante o build.
 
 As metricas de teste continuam disponiveis na API local `/api/metrics`, que calcula receita, lucro, EPC, custo por clique e RPV.
 

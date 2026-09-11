@@ -49,6 +49,13 @@ export const config = {
   siteUrl: process.env.AUTOBLOG_SITE_URL || "",
   defaultSearchLimit: boundedInt(process.env.AUTOBLOG_DEFAULT_SEARCH_LIMIT, 5, 1, 25),
   publicSearchLimit: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_LIMIT, 8, 3, 25),
+  publicSearchHost: process.env.AUTOBLOG_PUBLIC_SEARCH_HOST || "127.0.0.1",
+  publicSearchPort: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_PORT, 4178, 1, 65535),
+  publicSearchAllowedOrigins: splitCsv(process.env.AUTOBLOG_PUBLIC_SEARCH_ORIGINS, []),
+  publicSearchRateLimit: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_RATE_LIMIT, 6, 1, 120),
+  publicSearchRateWindowMs: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_RATE_WINDOW_MS, 900000, 60000, 3600000),
+  publicSearchCacheTtlMs: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_CACHE_TTL_MS, 900000, 60000, 86400000),
+  publicSearchMaxQueue: boundedInt(process.env.AUTOBLOG_PUBLIC_SEARCH_MAX_QUEUE, 3, 0, 20),
   publicLiveSearchEnabled: process.env.AUTOBLOG_PUBLIC_LIVE_SEARCH === "1"
     || (process.env.AUTOBLOG_PUBLIC_LIVE_SEARCH == null && (process.env.AUTOBLOG_HOST || "127.0.0.1") === "127.0.0.1"),
   autoWorkerEnabled: process.env.AUTOBLOG_AUTO_WORKER !== "0",

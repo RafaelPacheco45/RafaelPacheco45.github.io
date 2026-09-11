@@ -319,6 +319,19 @@ function validateComparisons() {
 }
 
 function validateMonetization(cfg) {
+  const searchApiBase = String(cfg.searchApiBase || "").trim();
+  if (!searchApiBase) {
+    warn("Busca ao vivo", "searchApiBase vazio; o site publicado usa somente resultados salvos");
+  } else {
+    try {
+      const searchApiUrl = new URL(searchApiBase);
+      if (searchApiUrl.protocol !== "https:") fail("Busca ao vivo", "searchApiBase precisa usar HTTPS em producao");
+      else ok("Busca ao vivo", "endpoint publico configurado com HTTPS");
+    } catch {
+      fail("Busca ao vivo", "searchApiBase invalido");
+    }
+  }
+
   if (!cfg.ga4MeasurementId) warn("GA4", "vazio; campanhas ficam sem medicao adequada");
   else ok("GA4", "configurado");
 
