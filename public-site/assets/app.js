@@ -684,18 +684,23 @@
     if (!grid) return false;
     const cards = [];
     const productsForTracking = [];
-    if (data.recommendation) {
-      cards.push(searchProductCardHTML(data.recommendation, "Melhor escolha"));
-      productsForTracking.push(data.recommendation);
-    }
-    if (data.cheapest && (!data.recommendation || data.cheapest.id !== data.recommendation.id)) {
-      cards.push(searchProductCardHTML(data.cheapest, "Menor preço"));
-      productsForTracking.push(data.cheapest);
-    }
-    (data.alternatives || []).slice(0, 4).forEach((item, index) => {
-      cards.push(searchProductCardHTML(item, index === 0 ? "Alternativa" : "Opção"));
+    const shownProducts = new Set();
+    const addProductCard = (item, label) => {
+      if (!item) return false;
+      const key = item.sourceUrl || item.id || item.affiliateUrl || item.title;
+      if (!key || shownProducts.has(key)) return false;
+      shownProducts.add(key);
+      cards.push(searchProductCardHTML(item, label));
       productsForTracking.push(item);
-    });
+      return true;
+    };
+    addProductCard(data.recommendation, "Melhor escolha");
+    addProductCard(data.cheapest, "Menor preço");
+    let alternativeIndex = 0;
+    for (const item of data.alternatives || []) {
+      if (shownProducts.size >= 6) break;
+      if (addProductCard(item, alternativeIndex === 0 ? "Alternativa" : "Opção")) alternativeIndex += 1;
+    }
     if (data.comparison) {
       cards.push(comparisonCardHTML(data.comparison));
     }
