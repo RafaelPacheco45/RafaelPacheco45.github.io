@@ -10,10 +10,12 @@ process.env.AUTOBLOG_CHROME_PROFILE = path.join(testDir, "chrome-profile");
 process.env.AUTOBLOG_PUBLIC_SEARCH_ORIGINS = "https://achadoagora.blog.br";
 
 const {
+  attemptAffiliateForWinner,
   chooseShoppingRecommendation,
   rankShoppingCandidates
 } = await import("../server/shoppingSearchEngine.js");
 const { createPublicSearchServer } = await import("../server/publicSearchServer.js");
+const { lomadeePriceFromProduct } = await import("../server/adapters/lomadee.js");
 
 function candidate(overrides = {}) {
   return {
@@ -47,6 +49,28 @@ test("melhor produto vence antes da tentativa de afiliacao", () => {
   const selected = chooseShoppingRecommendation(ranked, { priority: "balanced" });
   assert.equal(selected.id, "better");
   assert.equal(selected.selectionReason, "melhor equilibrio entre preco, avaliacao e confiabilidade");
+});
+
+test("somente o vencedor global recebe tentativa de afiliacao", async () => {
+  const better = candidate({ id: "better", price: 95, rating: 4.9, reviewLabel: "2500 avaliacoes" });
+  const other = candidate({ id: "other", price: 108, rating: 4.7, reviewLabel: "400 avaliacoes" });
+  const winner = chooseShoppingRecommendation(rankShoppingCandidates([other, better]), { priority: "balanced" });
+  const attempted = [];
+  const affiliated = await attemptAffiliateForWinner(winner, {
+    mercadoLivreGenerator: async (item) => {
+      attempted.push(item.id);
+      return "https://meli.la/winner123";
+    }
+  });
+  assert.deepEqual(attempted, ["better"]);
+  assert.equal(affiliated.id, "better");
+  assert.equal(affiliated.affiliateUrl, "https://meli.la/winner123");
+  assert.equal(affiliated.affiliateStatus, "generated");
+});
+
+test("preco da Lomadee permanece em reais", () => {
+  const product = { options: [{ pricing: [{ price: 79.79 }] }] };
+  assert.equal(lomadeePriceFromProduct(product), 79.79);
 });
 
 test("gateway expoe somente busca, aplica CORS e forca busca ao vivo", async (t) => {

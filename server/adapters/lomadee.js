@@ -19,8 +19,14 @@ async function lomadeeFetch(path, options = {}) {
 
 function priceFromProduct(product) {
   const option = (product.options || [])[0];
-  const cents = option?.pricing?.[0]?.price;
-  return Number.isFinite(cents) ? cents / 100 : null;
+  const price = option?.pricing?.[0]?.price;
+  // A API da Lomadee entrega o valor em reais (inclusive com casas decimais),
+  // nao em centavos. Dividir por 100 transformava R$ 22,00 em R$ 0,22.
+  return Number.isFinite(price) ? price : null;
+}
+
+export function lomadeePriceFromProduct(product) {
+  return priceFromProduct(product);
 }
 
 function availableFromProduct(product) {

@@ -344,7 +344,7 @@ function buildResult({ query, category, mode, candidates, comparison = null, sou
   };
 }
 
-async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate, preferences, headless }) {
+async function liveMercadoLivreSearch({ query, category, limit, headless }) {
   // O Modo IA do Google (server/adapters/googleAiMode.js) fica de fora da busca
   // ao vivo de proposito: quem faz uma busca em busca.html espera resposta na
   // hora, e o Modo IA pode adicionar dezenas de segundos por causa da cobertura
@@ -352,55 +352,14 @@ async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate,
   // que ja roda em segundo plano sem ninguem esperando na tela.
   return withBrowser(async ({ page }) => {
     const found = await searchMercadoLivreProducts({ query, category, limit, page });
-    const ranked = rankShoppingCandidates(found, preferences);
-    let selected = chooseShoppingRecommendation(ranked, preferences);
-    const saved = [];
-
-    if (selected && preferAffiliate && canGenerateAffiliate(selected) && !hasAffiliateLink(selected)) {
-      try {
-        const affiliateUrl = await generateMercadoLivreAffiliateLink({ sourceUrl: selected.sourceUrl, page });
-        selected = {
-          ...selected,
-          affiliateUrl,
-          affiliateReady: true,
-          affiliateEligible: true,
-          affiliateStatus: "generated"
-        };
-      } catch (error) {
-        selected = {
-          ...selected,
-          affiliateStatus: "failed",
-          affiliateError: error.message
-        };
-      }
-    }
-
-    for (const candidate of found) {
-      const merged = selected && candidate.id === selected.id ? selected : candidate;
-      saved.push(upsertProduct({
-        ...merged,
-        affiliateUrl: merged.affiliateUrl || "",
-        status: merged.affiliateUrl ? "affiliate_ready" : "discovered"
-      }));
-    }
-
-    const selectedStatus = selected ? {
-      affiliateStatus: selected.affiliateStatus || "",
-      affiliateError: selected.affiliateError || "",
-      affiliateUrl: selected.affiliateUrl || ""
-    } : null;
+    const saved = found.map((candidate) => upsertProduct({
+      ...candidate,
+      affiliateUrl: candidate.affiliateUrl || "",
+      status: candidate.affiliateUrl ? "affiliate_ready" : "discovered"
+    }));
 
     return {
-      candidates: saved.map((product) => {
-        const candidate = dbProductToCandidate(product);
-        if (!selected || candidate.id !== selected.id) return candidate;
-        return {
-          ...candidate,
-          affiliateUrl: selectedStatus.affiliateUrl || candidate.affiliateUrl,
-          affiliateStatus: selectedStatus.affiliateStatus || candidate.affiliateStatus,
-          affiliateError: selectedStatus.affiliateError
-        };
-      }),
+      candidates: saved.map(dbProductToCandidate),
       sourceStatus: [{
         marketplace: "mercadolivre",
         label: "Mercado Livre",
@@ -411,31 +370,56 @@ async function liveMercadoLivreSearch({ query, category, limit, preferAffiliate,
   }, { timeoutMs: 90000, headless });
 }
 
-async function liveLomadeeSearch({ query, limit, preferAffiliate, preferences }) {
+async function liveLomadeeSearch({ query, limit }) {
   const found = await searchLomadeeProducts({ query, limit });
-  const ranked = rankShoppingCandidates(found, preferences);
-  let selected = chooseShoppingRecommendation(ranked, preferences);
-
-  if (selected && preferAffiliate && canGenerateAffiliate(selected) && !hasAffiliateLink(selected)) {
-    try {
-      const affiliateUrl = await generateLomadeeAffiliateLink({ organizationId: selected.organizationId, sourceUrl: selected.sourceUrl });
-      selected = { ...selected, affiliateUrl, affiliateReady: true, affiliateEligible: true, affiliateStatus: "generated" };
-    } catch (error) {
-      selected = { ...selected, affiliateStatus: "failed", affiliateError: error.message };
-    }
-  }
-
   const saved = found.map((candidate) => {
-    const merged = selected && candidate.id === selected.id ? selected : candidate;
-    const product = upsertProduct({ ...merged, affiliateUrl: merged.affiliateUrl || "", status: merged.affiliateUrl ? "affiliate_ready" : "discovered" });
+    const product = upsertProduct({ ...candidate, affiliateUrl: candidate.affiliateUrl || "", status: candidate.affiliateUrl ? "affiliate_ready" : "discovered" });
     const restored = dbProductToCandidate(product);
-    return { ...restored, organizationId: merged.organizationId, store: merged.store };
+    return { ...restored, organizationId: candidate.organizationId, store: candidate.store };
   });
 
   return {
     candidates: saved,
     sourceStatus: [{ marketplace: "lomadee", label: "Lomadee", status: "ok", count: found.length }]
   };
+}
+
+export async function attemptAffiliateForWinner(candidate, {
+  headless = false,
+  mercadoLivreGenerator,
+  lomadeeGenerator
+} = {}) {
+  if (!candidate || hasAffiliateLink(candidate) || !canGenerateAffiliate(candidate)) return candidate;
+  try {
+    let affiliateUrl = "";
+    if (candidate.marketplace === "mercadolivre") {
+      affiliateUrl = mercadoLivreGenerator
+        ? await mercadoLivreGenerator(candidate)
+        : await withBrowser(
+          ({ page }) => generateMercadoLivreAffiliateLink({ sourceUrl: candidate.sourceUrl, page }),
+          { timeoutMs: 90000, headless }
+        );
+    } else if (candidate.marketplace === "lomadee") {
+      affiliateUrl = lomadeeGenerator
+        ? await lomadeeGenerator(candidate)
+        : await generateLomadeeAffiliateLink({ organizationId: candidate.organizationId, sourceUrl: candidate.sourceUrl });
+    }
+    if (!affiliateUrl) return candidate;
+    return {
+      ...candidate,
+      affiliateUrl,
+      affiliateReady: true,
+      affiliateEligible: true,
+      affiliateStatus: "generated",
+      affiliateError: ""
+    };
+  } catch (error) {
+    return {
+      ...candidate,
+      affiliateStatus: "failed",
+      affiliateError: error?.message || String(error)
+    };
+  }
 }
 
 export async function runShoppingSearch({
@@ -473,10 +457,10 @@ export async function runShoppingSearch({
   const acceptsMarketplace = (marketplace) => !preferences.marketplaces.length || preferences.marketplaces.includes(marketplace);
   const sources = [];
   if (acceptsMarketplace("mercadolivre")) {
-    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => liveMercadoLivreSearch({ query: cleanQuery, category, limit, preferAffiliate, preferences, headless }) });
+    sources.push({ marketplace: "mercadolivre", label: "Mercado Livre", run: () => liveMercadoLivreSearch({ query: cleanQuery, category, limit, headless }) });
   }
   if (config.lomadeeApiKey && acceptsMarketplace("lomadee")) {
-    sources.push({ marketplace: "lomadee", label: "Lojas parceiras", run: () => liveLomadeeSearch({ query: cleanQuery, limit, preferAffiliate, preferences }) });
+    sources.push({ marketplace: "lomadee", label: "Lojas parceiras", run: () => liveLomadeeSearch({ query: cleanQuery, limit }) });
   }
   if (!sources.length) {
     return buildResult({
@@ -525,11 +509,24 @@ export async function runShoppingSearch({
     };
   }
 
+  let combinedCandidates = dedupeCandidates([...candidates, ...cached]);
+  if (preferAffiliate) {
+    const ranked = rankShoppingCandidates(combinedCandidates, preferences);
+    const winner = chooseShoppingRecommendation(ranked, preferences);
+    const affiliatedWinner = await attemptAffiliateForWinner(winner, { headless });
+    if (affiliatedWinner && winner && affiliatedWinner.id === winner.id) {
+      if (affiliatedWinner.affiliateUrl) {
+        upsertProduct({ ...affiliatedWinner, status: "affiliate_ready" });
+      }
+      combinedCandidates = combinedCandidates.map((item) => item.id === winner.id ? affiliatedWinner : item);
+    }
+  }
+
   return buildResult({
     query: cleanQuery,
     category,
     mode: "live",
-    candidates: dedupeCandidates([...candidates, ...cached]),
+    candidates: combinedCandidates,
     comparison,
     sourceStatus,
     liveAvailable: config.publicLiveSearchEnabled,
