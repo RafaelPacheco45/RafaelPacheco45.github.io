@@ -687,7 +687,9 @@
     const shownProducts = new Set();
     const addProductCard = (item, label) => {
       if (!item) return false;
-      const key = item.sourceUrl || item.id || item.affiliateUrl || item.title;
+      const key = [item.title, item.store || item.marketplace, item.price]
+        .map((value) => String(value ?? "").trim().toLowerCase())
+        .join("|") || item.sourceUrl || item.id || item.affiliateUrl;
       if (!key || shownProducts.has(key)) return false;
       shownProducts.add(key);
       cards.push(searchProductCardHTML(item, label));

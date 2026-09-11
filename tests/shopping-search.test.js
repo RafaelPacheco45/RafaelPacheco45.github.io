@@ -12,6 +12,7 @@ process.env.AUTOBLOG_PUBLIC_SEARCH_ORIGINS = "https://achadoagora.blog.br";
 const {
   attemptAffiliateForWinner,
   chooseShoppingRecommendation,
+  dedupeCandidates,
   rankShoppingCandidates
 } = await import("../server/shoppingSearchEngine.js");
 const { createPublicSearchServer } = await import("../server/publicSearchServer.js");
@@ -71,6 +72,12 @@ test("somente o vencedor global recebe tentativa de afiliacao", async () => {
 test("preco da Lomadee permanece em reais", () => {
   const product = { options: [{ pricing: [{ price: 79.79 }] }] };
   assert.equal(lomadeePriceFromProduct(product), 79.79);
+});
+
+test("oferta repetida com rastreamento diferente aparece uma vez", () => {
+  const first = candidate({ id: "one", sourceUrl: "https://loja.example/produto/123?utm_source=a" });
+  const duplicate = candidate({ id: "two", sourceUrl: "https://loja.example/produto/123?utm_source=b" });
+  assert.deepEqual(dedupeCandidates([first, duplicate]).map((item) => item.id), ["one"]);
 });
 
 test("gateway expoe somente busca, aplica CORS e forca busca ao vivo", async (t) => {

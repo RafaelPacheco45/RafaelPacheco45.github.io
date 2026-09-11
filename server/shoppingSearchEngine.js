@@ -122,13 +122,33 @@ function dbProductToCandidate(product) {
   };
 }
 
-function dedupeCandidates(items) {
+function canonicalProductUrl(value) {
+  try {
+    const parsed = new URL(String(value || ""));
+    parsed.search = "";
+    parsed.hash = "";
+    return `${parsed.origin}${parsed.pathname}`.replace(/\/$/, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+export function dedupeCandidates(items) {
   const seen = new Set();
   const out = [];
   for (const item of items) {
-    const key = item.id || item.sourceUrl || item.title;
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
+    const semanticKey = [
+      cleanText(item.title).toLowerCase(),
+      cleanText(item.store || marketplaceLabel(item.marketplace)).toLowerCase(),
+      numberOrNull(item.price) || ""
+    ].join("|");
+    const keys = [
+      canonicalProductUrl(item.sourceUrl),
+      semanticKey !== "||" ? semanticKey : "",
+      item.id ? `id:${item.id}` : ""
+    ].filter(Boolean);
+    if (!keys.length || keys.some((key) => seen.has(key))) continue;
+    keys.forEach((key) => seen.add(key));
     out.push(item);
   }
   return out;
@@ -318,7 +338,11 @@ function buildResult({ query, category, mode, candidates, comparison = null, sou
   const normalizedPreferences = normalizeSearchPreferences(preferences);
   const ranked = rankShoppingCandidates(candidates, normalizedPreferences);
   const recommendation = chooseShoppingRecommendation(ranked, normalizedPreferences);
-  const alternatives = ranked.filter((item) => !recommendation || item.id !== recommendation.id).slice(0, 5);
+  const cheapest = cheapestCandidate(ranked);
+  const alternatives = ranked.filter((item) =>
+    (!recommendation || item.id !== recommendation.id) &&
+    (!cheapest || item.id !== cheapest.id)
+  ).slice(0, 5);
   return {
     ok: true,
     query,
@@ -329,7 +353,7 @@ function buildResult({ query, category, mode, candidates, comparison = null, sou
     queued,
     preferences: normalizedPreferences,
     recommendation: publicCandidate(recommendation),
-    cheapest: publicCandidate(cheapestCandidate(ranked)),
+    cheapest: publicCandidate(cheapest),
     topRated: publicCandidate(topRatedCandidate(ranked)),
     alternatives: alternatives.map(publicCandidate),
     comparison: comparison ? {
