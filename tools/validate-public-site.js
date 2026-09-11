@@ -41,6 +41,17 @@ function read(rel) {
   return fs.readFileSync(publicPath(rel), "utf8");
 }
 
+function listFilesRecursive(dir, extension = "") {
+  if (!fs.existsSync(dir)) return [];
+  const files = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...listFilesRecursive(fullPath, extension));
+    else if (entry.isFile() && (!extension || entry.name.toLowerCase().endsWith(extension))) files.push(fullPath);
+  }
+  return files;
+}
+
 function loadPublicConfig() {
   const rel = path.join("assets", "config.js");
   if (!exists(rel)) {
@@ -322,6 +333,31 @@ function validateMonetization(cfg) {
     fail("AdSense", "ads.txt ausente apesar de adsenseClient configurado");
   } else {
     ok("AdSense", "cliente e ads.txt encontrados");
+
+    const htmlFiles = listFilesRecursive(publicDir, ".html");
+    const missingCode = htmlFiles.filter((file) => {
+      const html = fs.readFileSync(file, "utf8");
+      return !html.includes('name="google-adsense-account"')
+        || !html.includes("pagead2.googlesyndication.com/pagead/js/adsbygoogle.js");
+    });
+    if (missingCode.length) {
+      const relFiles = missingCode
+        .slice(0, 8)
+        .map((file) => path.relative(publicDir, file).replace(/\\/g, "/"));
+      const suffix = missingCode.length > relFiles.length ? ` (+${missingCode.length - relFiles.length})` : "";
+      fail("AdSense em paginas", `${missingCode.length} HTML sem codigo estatico: ${relFiles.join(", ")}${suffix}`);
+    } else {
+      ok("AdSense em paginas", `${htmlFiles.length} pagina(s) com codigo estatico`);
+    }
+
+    const legacyDomainFiles = htmlFiles.filter((file) =>
+      fs.readFileSync(file, "utf8").includes("achado-agora.rafylsck.chatgpt.site")
+    );
+    if (legacyDomainFiles.length) {
+      fail("Dominio antigo", `${legacyDomainFiles.length} HTML ainda apontam para o endereco anterior`);
+    } else {
+      ok("Dominio antigo", "nenhuma referencia no HTML publicado");
+    }
   }
 
   if (!cfg.affiliates?.mlMattWord) warn("ML matt_word", "vazio");

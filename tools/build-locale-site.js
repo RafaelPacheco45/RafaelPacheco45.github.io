@@ -78,6 +78,14 @@ function injectHeadCode(html, code) {
   return html.replace("</head>", `${code}</head>`);
 }
 
+function setCanonical(html, canonical) {
+  const tag = `<link rel="canonical" href="${canonical}" />`;
+  if (/<link\s+rel=["']canonical["'][^>]*>/i.test(html)) {
+    return html.replace(/<link\s+rel=["']canonical["'][^>]*>/i, tag);
+  }
+  return html.replace("</head>", `  ${tag}\n</head>`);
+}
+
 function loadPtBaseUrl() {
   const configPath = path.join(rootDir, "assets", "config.js");
   const source = fs.readFileSync(configPath, "utf8");
@@ -318,7 +326,12 @@ function copyDir(src, dest, options = {}) {
     const relForward = path.relative(rootDir, srcPath).replace(/\\/g, "/");
     if (options.exclude?.some((pattern) => pattern.test(relForward))) continue;
     if (entry.isDirectory()) copyDir(srcPath, destPath, options);
-    else if (entry.isFile()) fs.copyFileSync(srcPath, destPath);
+    else if (entry.isFile()) {
+      const transform = options.transform
+        ? (content) => options.transform(content, relForward)
+        : null;
+      copyFileTransform(srcPath, destPath, transform);
+    }
   }
 }
 
@@ -373,7 +386,13 @@ function buildLocaleSite(locale) {
     fs.writeFileSync(path.join(outputDir, productPagePath(product)), renderProductPage(product, siteConfig, siteUrl, locale), "utf8");
   }
 
-  copyDir(path.join(localeSrcDir, "comparativos"), path.join(outputDir, "comparativos"));
+  copyDir(path.join(localeSrcDir, "comparativos"), path.join(outputDir, "comparativos"), {
+    transform: (content, rel) => {
+      if (!/\.html$/i.test(rel)) return content;
+      const canonical = `${siteUrl.replace(/\/$/, "")}/comparativos/${path.basename(rel)}`;
+      return setCanonical(injectHeadCode(content, adHead), canonical);
+    }
+  });
 
   const comparisonSlugs = fs.existsSync(path.join(localeSrcDir, "comparativos"))
     ? fs.readdirSync(path.join(localeSrcDir, "comparativos")).filter((f) => f.endsWith(".html"))

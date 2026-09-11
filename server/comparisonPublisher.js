@@ -64,6 +64,14 @@ function pageChromeHead(title, description, brand, prefix = "") {
   <link rel="stylesheet" href="${prefix}assets/styles.css" />`;
 }
 
+function adsenseHeadCode(client) {
+  const safeClient = String(client || "").trim();
+  if (!/^ca-pub-\d+$/i.test(safeClient)) return "";
+  return `
+  <meta name="google-adsense-account" content="${escapeHtml(safeClient)}" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${escapeHtml(safeClient)}" crossorigin="anonymous" data-aa-adsense="1"></script>`;
+}
+
 function topbar(prefix, activeHref = "") {
   const link = (href, label) => `<a href="${prefix}${href}"${activeHref === href ? ' aria-current="page"' : ""}>${label}</a>`;
   return `
@@ -204,6 +212,7 @@ function rankDetailCard(item, siteConfig) {
 
 export function renderComparisonPage(comparison, siteConfig, siteUrl) {
   const brand = siteConfig.brand || "Achado Agora";
+  const adHead = adsenseHeadCode(siteConfig.adsenseClient);
   const canonical = publicUrl(siteUrl, comparisonPagePath(comparison));
   const items = [...comparison.items].sort((a, b) => a.rank - b.rank);
   const itemListJsonLd = {
@@ -227,7 +236,7 @@ export function renderComparisonPage(comparison, siteConfig, siteUrl) {
 
   return `<!doctype html>
 <html lang="pt-BR">
-<head>${pageChromeHead(comparison.title, comparison.intro || comparison.title, brand, "../")}
+<head>${pageChromeHead(comparison.title, comparison.intro || comparison.title, brand, "../")}${adHead}
   <link rel="canonical" href="${escapeHtml(canonical)}" />
   <script type="application/ld+json" data-aa-jsonld="comparison">${asJson(itemListJsonLd).replace(/</g, "\\u003c")}</script>
 </head>
@@ -290,11 +299,12 @@ function comparisonIndexCard(comparison) {
 
 export function renderComparisonsIndexPage(comparisons, siteConfig) {
   const brand = siteConfig.brand || "Achado Agora";
+  const adHead = adsenseHeadCode(siteConfig.adsenseClient);
   const title = "Comparativos";
   const cards = comparisons.map(comparisonIndexCard).join("");
   return `<!doctype html>
 <html lang="pt-BR">
-<head>${pageChromeHead(title, "Comparativos automaticos com preco e reviews reais de compradores.", brand)}
+<head>${pageChromeHead(title, "Comparativos automaticos com preco e reviews reais de compradores.", brand)}${adHead}
 </head>
 <body data-page="comparativos-index">
   ${topbar("", "comparativos.html")}

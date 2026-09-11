@@ -268,7 +268,13 @@ function copyDir(srcRel, destRel = srcRel, options = {}) {
     const outRel = path.join(destRel, entry.name);
     if (options.exclude?.some((pattern) => pattern.test(rel.replace(/\\/g, "/")))) continue;
     if (entry.isDirectory()) copyDir(rel, outRel, options);
-    else if (entry.isFile()) copyFile(rel, outRel);
+    else if (entry.isFile()) {
+      const relForward = rel.replace(/\\/g, "/");
+      const transform = options.transform
+        ? (content) => options.transform(content, relForward)
+        : null;
+      copyFile(rel, outRel, transform);
+    }
   }
 }
 
@@ -367,7 +373,9 @@ export function buildPublicSite(options = {}) {
   const publicConfig = writePublicConfig(siteUrl);
   const productPageCount = writeProductPages(publicConfig, siteUrl);
   copyDir("posts", "posts");
-  copyDir("comparativos", "comparativos");
+  copyDir("comparativos", "comparativos", {
+    transform: (content, rel) => (/\.html$/i.test(rel) ? injectHeadCode(content, adHead) : content)
+  });
   writeDeployFiles(siteUrl);
 
   return {
