@@ -152,6 +152,14 @@
       const slotKey = String(slot.dataset.adSlotKey || "").trim();
       const keyedSlot = slotKey ? slotsByKey[slotKey] : "";
       const adSlot = String(slot.dataset.adSlot || keyedSlot || defaultSlot || "").trim();
+      if (!adSlot) {
+        slot.hidden = true;
+        slot.setAttribute("aria-hidden", "true");
+        return;
+      }
+
+      slot.hidden = false;
+      slot.removeAttribute("aria-hidden");
       slot.classList.add("ad-slot-live");
       slot.innerHTML = "";
 
@@ -159,13 +167,6 @@
       label.className = "ad-label";
       label.textContent = "Advertisement";
       slot.appendChild(label);
-
-      if (!adSlot) {
-        const small = document.createElement("small");
-        small.textContent = "Auto Ads ativo. O AdSense decide se exibe anuncio aqui.";
-        slot.appendChild(small);
-        return;
-      }
 
       const ins = document.createElement("ins");
       ins.className = "adsbygoogle";
