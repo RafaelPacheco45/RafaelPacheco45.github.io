@@ -1248,6 +1248,15 @@ th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: 
 
 @media (max-width: 600px) {
   .grid { grid-template-columns: 1fr; }
+  .hero-search {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 4px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+  .hero-search input { min-width: 0; width: 100%; padding: 10px 4px; font-size: 16px; }
+  .hero-search .btn { grid-column: 1 / -1; width: 100%; min-height: 46px; padding: 12px 18px; }
   .search-preferences { padding: 18px; }
   .preferences-head, .preferences-actions { align-items: stretch; flex-direction: column; }
   .preferences-device { align-self: flex-start; }
@@ -1259,8 +1268,9 @@ th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: 
   .topbar-inner { padding: 0 16px; }
   .page { padding: 0 16px 70px; }
   .cookie.show {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
     gap: 10px;
     left: 0;
     right: 0;
@@ -1270,5 +1280,7 @@ th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: 
     padding: 10px 14px;
   }
   .cookie p { margin: 0; font-size: 0.8rem; }
+  .cookie-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .cookie-actions .btn { width: 100%; white-space: nowrap; }
   body.cookie-on { padding-bottom: 88px; }
 }
