@@ -248,6 +248,44 @@ function injectHeadCode(html, code) {
   return html.replace("</head>", `${code}</head>`);
 }
 
+function setCanonical(html, canonical) {
+  const tag = `<link rel="canonical" href="${escapeHtml(canonical)}" />`;
+  if (/<link\s+rel=["']canonical["'][^>]*>/i.test(html)) {
+    return html.replace(/<link\s+rel=["']canonical["'][^>]*>/i, tag);
+  }
+  return html.replace("</head>", `  ${tag}\n</head>`);
+}
+
+function injectSiteSchema(html, siteUrl, siteConfig) {
+  if (html.includes('data-aa-jsonld="site"')) return html;
+  const base = String(siteUrl || "").replace(/\/+$/, "");
+  if (!base) return html;
+  const organizationId = `${base}/#organization`;
+  const sameAs = [siteConfig.facebookPageUrl].filter((url) => /^https:\/\//i.test(String(url || "")));
+  const schema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": organizationId,
+        name: siteConfig.brand || "Achado Agora",
+        url: base,
+        logo: publicUrl(base, "assets/img/favicon.svg"),
+        ...(sameAs.length ? { sameAs } : {})
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${base}/#website`,
+        name: siteConfig.brand || "Achado Agora",
+        url: base,
+        publisher: { "@id": organizationId },
+        inLanguage: "pt-BR"
+      }
+    ]
+  };
+  return html.replace("</head>", `  <script type="application/ld+json" data-aa-jsonld="site">${jsonForScript(schema)}</script>\n</head>`);
+}
+
 function copyFile(srcRel, destRel = srcRel, transform = null) {
   const src = assertInsideRoot(path.join(rootDir, srcRel));
   if (!fs.existsSync(src)) return false;
@@ -293,6 +331,7 @@ function staticUrls(siteUrl) {
     "index.html",
     "artigo.html",
     "busca.html",
+    "comparativo-do-dia.html",
     "sobre.html",
     "privacidade.html",
     "termos.html",
@@ -360,14 +399,22 @@ export function buildPublicSite(options = {}) {
     "oferta.html",
     "busca.html",
     "comparativos.html",
+    "comparativo-do-dia.html",
     "favoritos.html",
     "sobre.html",
     "privacidade.html",
-    "termos.html"
+    "termos.html",
+    "404.html"
   ];
   const copied = [];
   for (const file of rootFiles) {
-    if (copyFile(file, file, (html) => injectHeadCode(html, adHead))) copied.push(file);
+    const canonicalFile = file === "index-mobile.html" ? "index.html" : file;
+    if (copyFile(file, file, (html) => {
+      let output = injectHeadCode(html, adHead);
+      output = setCanonical(output, publicUrl(siteUrl, canonicalFile));
+      if (file === "index.html" || file === "index-mobile.html") output = injectSiteSchema(output, siteUrl, cfg);
+      return output;
+    })) copied.push(file);
   }
 
   copyDir("assets", "assets");

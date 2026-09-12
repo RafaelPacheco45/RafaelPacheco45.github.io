@@ -6,6 +6,9 @@ import { config } from "./config.js";
 import { loadSiteConfig } from "./sitePublisher.js";
 import { runShoppingSearch } from "./shoppingSearchEngine.js";
 import { cleanText } from "./lib/utils.js";
+import { createDailyComparisons } from "./dailyComparisons.js";
+
+const dailyComparisons = createDailyComparisons();
 
 const MAX_BODY_BYTES = 8 * 1024;
 const SEARCH_PATH = "/api/shopping-search";
@@ -74,7 +77,7 @@ function responseHeaders(req, allowedOrigins) {
   };
   if (origin && rawOrigin === origin && allowedOrigins.has(origin)) {
     headers["access-control-allow-origin"] = origin;
-    headers["access-control-allow-methods"] = "POST, OPTIONS";
+    headers["access-control-allow-methods"] = "GET, POST, OPTIONS";
     headers["access-control-allow-headers"] = "content-type";
   }
   return headers;
@@ -270,7 +273,7 @@ export function createPublicSearchServer(options = {}) {
       return;
     }
 
-    if (req.method === "OPTIONS" && url.pathname === SEARCH_PATH) {
+    if (req.method === "OPTIONS" && [SEARCH_PATH, "/api/home-comparisons"].includes(url.pathname)) {
       res.writeHead(204, responseHeaders(req, allowedOrigins));
       res.end();
       return;
@@ -278,6 +281,13 @@ export function createPublicSearchServer(options = {}) {
 
     if (req.method === "GET" && url.pathname === "/healthz") {
       sendJson(req, res, allowedOrigins, 200, { ok: true, service: "achado-agora-public-search", queue: queue.state() });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/home-comparisons") {
+      const id = url.searchParams.get("id");
+      const result = id ? dailyComparisons.readItem(id) : dailyComparisons.read();
+      sendJson(req, res, allowedOrigins, result ? 200 : 503, result || { error: "Os comparativos do dia ainda estao sendo preparados." });
       return;
     }
 
@@ -345,4 +355,8 @@ if (isMain) {
   server.listen(config.publicSearchPort, config.publicSearchHost, () => {
     console.log(`Busca publica protegida em http://${config.publicSearchHost}:${config.publicSearchPort}`);
   });
+  if (process.env.AUTOBLOG_DAILY_COMPARISONS !== "0") {
+    const stop = dailyComparisons.start();
+    server.on("close", stop);
+  }
 }

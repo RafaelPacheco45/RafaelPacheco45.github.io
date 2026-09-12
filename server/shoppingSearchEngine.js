@@ -176,7 +176,7 @@ export function dedupeCandidates(items) {
   return out;
 }
 
-function hasAffiliateLink(candidate) {
+export function hasAffiliateLink(candidate) {
   const url = safeUrl(candidate.affiliateUrl);
   if (!url) return false;
   const parsed = new URL(url);

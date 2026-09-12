@@ -138,6 +138,8 @@ npm run public-search
 
 Ele escuta apenas em `127.0.0.1:4178`, aceita `POST /api/shopping-search`, restringe a origem, limita buscas por IP, reaproveita resultados por 15 minutos e serializa o navegador. Publique essa porta por um proxy/tunel HTTPS confiavel e defina `searchApiBase` no `assets/config*.js` ou `AUTOBLOG_PUBLIC_SEARCH_API_URL` durante o build.
 
+Para tirar esse processo do PC, use o pacote Docker em `compose.backend.yml`. O passo a passo de VPS, volume persistente, healthcheck e Cloudflare Tunnel esta em `docs/BACKEND-VPS.md`; chaves e tokens ficam somente no `.env.backend` ignorado pelo Git.
+
 As metricas de teste continuam disponiveis na API local `/api/metrics`, que calcula receita, lucro, EPC, custo por clique e RPV.
 
 Fluxo do worker:

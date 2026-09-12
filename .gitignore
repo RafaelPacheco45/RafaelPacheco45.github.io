@@ -4,8 +4,12 @@ data/*.db-*
 data/runtime/
 data/chrome-profile/
 data/manual-login.json
+data/home-comparisons.json
+data/home-comparisons.json.archive/
+data/home-comparisons.json.*.tmp
 *.log
 .env
+.env.backend
 dist/
 .openai/
 public-site.zip

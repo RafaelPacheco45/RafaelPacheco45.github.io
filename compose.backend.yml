@@ -1,0 +1,53 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: achado-agora-backend:local
+    init: true
+    restart: unless-stopped
+    env_file:
+      - path: ./.env.backend.example
+        required: true
+      - path: ./.env.backend
+        required: false
+    environment:
+      AUTOBLOG_DATA_DIR: /app/data
+      AUTOBLOG_CHROME_PROFILE: /app/data/chrome-profile
+      AUTOBLOG_CHROME_PATH: /usr/bin/chromium
+      AUTOBLOG_PUBLIC_SEARCH_HOST: 0.0.0.0
+      AUTOBLOG_PUBLIC_SEARCH_PORT: 4178
+      AUTOBLOG_PUBLIC_LIVE_SEARCH: "1"
+      AUTOBLOG_DAILY_COMPARISONS: "1"
+    ports:
+      - "127.0.0.1:4178:4178"
+    volumes:
+      - backend-data:/app/data
+    shm_size: "1gb"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4178/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    pull_policy: always
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    env_file:
+      - path: ./.env.backend.example
+        required: true
+      - path: ./.env.backend
+        required: false
+    command: ["tunnel", "--no-autoupdate", "run"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  backend-data:
+    name: achado-agora-backend-data

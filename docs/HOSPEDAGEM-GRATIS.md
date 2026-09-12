@@ -5,7 +5,7 @@ O repositorio guarda o projeto completo. O GitHub Pages publica apenas a pasta `
 ```text
 GitHub: codigo-fonte, paginas publicas e historico
 GitHub Pages: somente public-site/
-Seu PC: Node, Playwright, banco SQLite e perfil autenticado do navegador
+VPS (ou seu PC temporariamente): API Node, Chromium, banco SQLite e comparativos diarios
 ```
 
 ## Publicacao automatica
@@ -45,3 +45,5 @@ dist/
 ```
 
 Nunca envie cookies, senhas, tokens, banco local ou o perfil autenticado do navegador.
+
+Para manter a API ligada sem depender do PC, siga `docs/BACKEND-VPS.md`.

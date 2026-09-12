@@ -116,6 +116,22 @@ test("acessorio de geladeira continua pesquisavel quando essa e a intencao", () 
   assert.equal(isRelevantCandidate({ title: "Porta de Geladeira Brastemp Original" }, "porta de geladeira"), true);
 });
 
+test("buscas por produto principal rejeitam pecas e variantes de outro tipo", () => {
+  assert.equal(isRelevantCandidate({ title: "Jarra de Vidro Original para Cafeteira CMM20" }, "cafeteira"), false);
+  assert.equal(isRelevantCandidate({ title: "Cafeteira Britania Duo Coffee com Jarra" }, "cafeteira"), true);
+  assert.equal(isRelevantCandidate({ title: "Helice Ventilador Ventisol 40cm Original" }, "ventilador"), false);
+  assert.equal(isRelevantCandidate({ title: "Ventilador de Mesa Ventisol 40cm" }, "ventilador"), true);
+  assert.equal(isRelevantCandidate({ title: "Ventilador Celular Portatil Android Iphone" }, "ventilador"), false);
+  assert.equal(isRelevantCandidate({ title: "Fio Para Ventilador Arno Silence Force Original" }, "ventilador"), false);
+  assert.equal(isRelevantCandidate({ title: "Ventilador Repelente VR1001" }, "ventilador"), false);
+  assert.equal(isRelevantCandidate({ title: "Luminaria de Mesa Touch com Ventilador" }, "ventilador"), false);
+  assert.equal(isRelevantCandidate({ title: "Arraste Copo Liquidificador Britania Original" }, "liquidificador"), false);
+  assert.equal(isRelevantCandidate({ title: "Massa de Modelar Play-Doh Liquidificador Smoothies" }, "liquidificador"), false);
+  assert.equal(isRelevantCandidate({ title: "Liquidificador Britania Diamante 600W" }, "liquidificador"), true);
+  assert.equal(isRelevantCandidate({ title: "Adaptador Bluetooth para Caixa de Som" }, "caixa de som bluetooth"), false);
+  assert.equal(isRelevantCandidate({ title: "Caixa de Som Bluetooth Portatil 20W" }, "caixa de som bluetooth"), true);
+});
+
 test("somente ofertas exibidas sao afiliadas sem mudar a ordem", async () => {
   const candidates = Array.from({ length: 5 }, (_, index) => candidate({
     id: `offer-${index}`,

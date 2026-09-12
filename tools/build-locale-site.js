@@ -356,6 +356,7 @@ function buildLocaleSite(locale) {
     "oferta.html",
     "busca.html",
     "comparativos.html",
+    "comparativo-do-dia.html",
     "favoritos.html",
     "sobre.html",
     "privacidade.html",
@@ -365,7 +366,11 @@ function buildLocaleSite(locale) {
   for (const file of rootFiles) {
     const src = path.join(localeSrcDir, file);
     if (!fs.existsSync(src)) continue;
-    copyFileTransform(src, path.join(outputDir, file), (html) => injectHreflang(injectHeadCode(html, adHead), file, ptBase));
+    const canonicalFile = file === "index-mobile.html" ? "index.html" : file;
+    copyFileTransform(src, path.join(outputDir, file), (html) => setCanonical(
+      injectHreflang(injectHeadCode(html, adHead), file, ptBase),
+      publicUrl(siteUrl, canonicalFile)
+    ));
     copied.push(file);
   }
 
@@ -402,6 +407,7 @@ function buildLocaleSite(locale) {
     "index.html",
     "artigo.html",
     "busca.html",
+    "comparativo-do-dia.html",
     "sobre.html",
     "privacidade.html",
     "termos.html",

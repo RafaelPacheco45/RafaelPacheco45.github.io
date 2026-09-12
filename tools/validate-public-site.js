@@ -141,6 +141,7 @@ function validateSitemapAndRobots(siteUrl, products) {
     "index.html",
     "artigo.html",
     "busca.html",
+    "comparativo-do-dia.html",
     "sobre.html",
     "privacidade.html",
     "termos.html",
@@ -171,6 +172,7 @@ function validateRootPages() {
     "sobre.html",
     "privacidade.html",
     "termos.html",
+    "404.html",
     "assets/app.js",
     "assets/config.js"
   ]) {
@@ -189,6 +191,15 @@ function validateRootPages() {
     } else {
       ok("Home", "6 comparativos preparados na pagina inicial");
     }
+    if (html.includes("+2 milhões") || !html.includes('data-aa-jsonld="site"')) {
+      fail("Home", html.includes("+2 milhões") ? "promessa de audiencia sem evidencia" : "dados estruturados do site ausentes");
+    } else {
+      ok("Home", "promessas verificaveis e dados estruturados presentes");
+    }
+  }
+
+  if (exists("404.html") && !read("404.html").includes('name="robots" content="noindex"')) {
+    fail("404", "pagina precisa usar noindex");
   }
 
   if (exists("busca.html") && exists("assets/app.js")) {
@@ -202,6 +213,20 @@ function validateRootPages() {
       ok("Busca personalizada", "prioridade, preco, nota, lojas e estado da consulta conectados");
     }
   }
+}
+
+function validateCanonicalPages(siteUrl) {
+  if (!siteUrl) return;
+  const pages = ["index.html", "index-mobile.html", "artigo.html", "oferta.html", "busca.html", "comparativos.html",
+    "comparativo-do-dia.html", "favoritos.html", "sobre.html", "privacidade.html", "termos.html", "404.html"];
+  const before = errors;
+  for (const rel of pages) {
+    if (!exists(rel)) continue;
+    const canonicalRel = rel === "index-mobile.html" ? "index.html" : rel;
+    const expected = `<link rel="canonical" href="${publicUrl(siteUrl, canonicalRel)}" />`;
+    if (!read(rel).includes(expected)) fail("Canonical", `${rel} sem ${publicUrl(siteUrl, canonicalRel)}`);
+  }
+  if (errors === before) ok("Canonical", `${pages.length} pagina(s) principais conferidas`);
 }
 
 function validateProducts(cfg, siteUrl) {
@@ -397,6 +422,7 @@ if (!fs.existsSync(publicDir)) {
     else ok("siteUrl", siteUrl);
 
     const products = validateProducts(cfg, siteUrl);
+    validateCanonicalPages(siteUrl);
     validateSitemapAndRobots(siteUrl, products);
     validateComparisons();
     validateMonetization(cfg);

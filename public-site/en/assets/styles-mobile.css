@@ -52,8 +52,15 @@ body.mobile-page .feature-item span { font-size: 0.73rem; }
 
 body.mobile-page .hero-search { max-width: none; padding: 6px 6px 6px 18px; margin-top: 20px; }
 body.mobile-page .hero-search svg { width: 18px; height: 18px; }
-body.mobile-page .hero-search input { font-size: 0.98rem; padding: 12px 10px; }
-body.mobile-page .hero-search .btn { padding: 12px 24px; font-size: 1rem; }
+body.mobile-page .hero-search {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 4px;
+  padding: 10px;
+  border-radius: 14px;
+}
+body.mobile-page .hero-search input { min-width: 0; width: 100%; font-size: 16px; padding: 10px 4px; }
+body.mobile-page .hero-search .btn { grid-column: 1 / -1; width: 100%; min-height: 46px; padding: 12px 18px; font-size: 1rem; }
 
 body.mobile-page .hero,
 body.mobile-page .editorial,
@@ -97,12 +104,15 @@ body.mobile-page .cookie {
   display: none;
 }
 body.mobile-page .cookie.show {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
   gap: 10px;
   padding: 10px 14px;
 }
 body.mobile-page .cookie p { margin: 0; font-size: 0.8rem; }
+body.mobile-page .cookie-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+body.mobile-page .cookie-actions .btn { width: 100%; white-space: nowrap; }
 body.mobile-page.cookie-on { padding-bottom: 88px; }
 
 .view-switch {

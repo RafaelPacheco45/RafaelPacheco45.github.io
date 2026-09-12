@@ -3,19 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script>
-    (function () {
-      try {
-        var pref = localStorage.getItem("aa_view");
-        var ua = navigator.userAgent || "";
-        var isMobileUA = /Android|iPhone|iPod|IEMobile|BlackBerry|Opera Mini|Windows Phone/i.test(ua);
-        var isTouchNarrow = (("ontouchstart" in window) || navigator.maxTouchPoints > 0) && window.innerWidth <= 820;
-        var wantsDesktop = pref ? pref === "desktop" : !(isMobileUA || isTouchNarrow);
-        if (wantsDesktop) location.replace("index.html" + location.search + location.hash);
-      } catch (e) {}
-    })();
-  </script>
-  <link rel="canonical" href="index.html" />
+<link rel="alternate" media="only screen and (max-width: 820px)" href="index-mobile.html" />
   <meta name="description" content="Achado Agora selecciona ofertas reales de Mercado Libre, Amazon y Shopee. Comparativa objetiva, precio de referencia y enlace directo a la tienda." />
   <meta name="theme-color" content="#ff5a1f" />
   <meta property="og:title" content="Achado Agora — encuentra la mejor opción para comprar" />
@@ -29,13 +17,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/styles.css?v=9" />
-  <link rel="stylesheet" href="assets/styles-mobile.css?v=1" />
+  <link rel="canonical" href="index.html" />
 </head>
-<body data-page="home" class="mobile-page">
+<body data-page="home">
   <a class="skip" href="busca.html">Ir a las ofertas</a>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="index-mobile.html">
+      <a class="brand" href="index.html">
         <span class="brand-mark" aria-hidden="true">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 10a4 4 0 0 1-8 0"/><path d="M3.103 6.034h17.794"/><path d="M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z"/></svg>
         </span>
@@ -43,10 +31,10 @@
       </a>
       <div class="nav-cluster" id="navLinks">
         <nav class="nav-links">
-          <a href="index-mobile.html#ofertas" aria-current="page">Ofertas</a>
+          <a href="index.html#ofertas" aria-current="page">Ofertas</a>
           <a href="comparativos.html">Comparativas</a>
           <a href="busca.html">Buscar</a>
-          <a href="index-mobile.html#como-funciona">Cómo funciona</a>
+          <a href="index.html#como-funciona">Cómo funciona</a>
           <a href="sobre.html">Método</a>
         </nav>
         <div class="topbar-actions">
@@ -103,161 +91,119 @@
       </div>
     </section>
 
-    <section class="section" id="comparativo-destaque">
-      <div class="compare-head">
-        <div>
-          <p class="eyebrow">Comparativa destacada</p>
-          <h2>¿Qué iPhone 15 comprar?</h2>
-          <p>Comparamos 3 anuncios reales de Mercado Libre por precio y calificación.</p>
-        </div>
-        <a class="compare-more" href="comparativos/qual-iphone-15-comprar-comparativo.html">Ver comparativa completa →</a>
-      </div>
-      <div class="compare-grid-h">
-        <article class="compare-card-h rank-1">
-          <span class="compare-rank"><em>1.º</em> Mejor precio y calificación</span>
-          <div class="compare-card-h-body">
-            <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">
-              <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Azul - Excelente (Reacondicionado)" width="96" height="96" loading="lazy">
-            </a>
-            <div class="compare-card-h-info">
-              <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Azul - Excelente (Reacondicionado)</a></h3>
-              <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Libre</span>
-              <span class="compare-rating">★ <strong>4.7</strong> (186 reseñas)</span>
-              <span class="compare-price">R$ 2.914,83</span>
-              <span class="compare-best">✓ Precio más bajo de la comparativa</span>
+    <div class="home-ad-rail-layout" aria-label="Publicidad y comparativa destacada">
+      <aside class="ad-slot ad-slot-rail" aria-label="Publicidad lateral izquierda" data-ad-slot-key="homeRailLeft" data-ad-format="vertical">
+        <span>Publicidad</span>
+        <small>Espacio lateral después del banner.</small>
+      </aside>
+
+      <div class="home-main-lane">
+        <section class="section" id="comparativo-destaque" data-daily-featured></section>
+
+        <section class="editorial">
+          <div>
+            <p class="eyebrow">Comparativa</p>
+            <h2>¿Qué freidora de aire comprar en 2026?</h2>
+            <p>Britânia BFR50 (5,5 L, familiar) frente a Electrolux EAF15 (3,2 L, compacta). Dos tamaños, dos cálculos, sin relleno de texto.</p>
+            <div class="editorial-products">
+              <span class="editorial-product"><img src="assets/img/airfryer-mid.jpg" alt="Freidora de aire Britânia BFR50" width="40" height="40" loading="lazy" />Britânia BFR50 · R$ 228</span>
+              <span class="editorial-product"><img src="assets/img/airfryer-compact.jpg" alt="Freidora de aire Electrolux EAF15" width="40" height="40" loading="lazy" />Electrolux EAF15 · R$ 269,90</span>
             </div>
           </div>
-          <a class="btn primary" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">Ver oferta</a>
-        </article>
-        <article class="compare-card-h">
-          <span class="compare-rank"><em>2.º</em> Alternativa cercana</span>
-          <div class="compare-card-h-body">
-            <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">
-              <img src="https://http2.mlstatic.com/D_NQ_NP_634723-MLA95496999820_102025-O.webp" alt="Apple iPhone 15 128 GB Color rosa - Excelente (Reacondicionado)" width="96" height="96" loading="lazy">
-            </a>
-            <div class="compare-card-h-info">
-              <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 128 GB Color rosa - Excelente (Reacondicionado)</a></h3>
-              <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Libre</span>
-              <span class="compare-rating">★ <strong>4.6</strong> (163 reseñas)</span>
-              <span class="compare-price">R$ 3.020,51</span>
+          <a class="btn primary" href="artigo.html">Leer la comparativa</a>
+        </section>
+
+        <section class="ad-slot ad-slot-wide" aria-label="Publicidad central" data-ad-slot-key="homeTop" data-ad-format="horizontal">
+          <span>Publicidad</span>
+          <small>Espacio para red de display. Actívalo solo después de la aprobación.</small>
+        </section>
+
+        <section class="section" id="ofertas">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Vitrina completa</p>
+              <h2>Más ofertas para explorar</h2>
             </div>
           </div>
-          <a class="btn outline" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">Ver oferta</a>
-        </article>
-        <article class="compare-card-h">
-          <span class="compare-rank"><em>3.º</em> Nuevo y sellado</span>
-          <div class="compare-card-h-body">
-            <a class="compare-card-h-media" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">
-              <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Azul" width="96" height="96" loading="lazy">
-            </a>
-            <div class="compare-card-h-info">
-              <h3><a href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Azul</a></h3>
-              <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Libre</span>
-              <span class="compare-rating">★ <strong>4.8</strong> (11.862 reseñas)</span>
-              <span class="compare-price">R$ 3.890,89</span>
+          <p data-daily-status role="status" aria-live="polite"></p>
+<div class="grid" id="comparativosGrid" data-daily-grid>
+            <div class="empty">Cargando comparativas…</div>
+          </div>
+        </section>
+
+        <section class="trust-bar" aria-label="Por qué confiar en Achado Agora">
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></span>
+            <div><strong>+2 millones</strong><span>de personas ya ahorraron con nosotros</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
+            <div><strong>100% gratis</strong><span>Compara precios sin pagar nada</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg></span>
+            <div><strong>Tiendas confiables</strong><span>Las más grandes y seguras de Brasil</span></div>
+          </div>
+          <div class="trust-bar-item">
+            <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+            <div><strong>Compras más inteligentes</strong><span>Más ahorro para ti</span></div>
+          </div>
+        </section>
+
+        <section class="ad-slot ad-slot-wide ad-slot-after-trust" aria-label="Publicidad después de los beneficios" data-ad-slot-key="homeAfterTrust" data-ad-format="horizontal">
+          <span>Publicidad</span>
+          <small>Espacio horizontal después de los sellos de confianza.</small>
+        </section>
+
+        <section id="como-funciona">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Cómo funciona</p>
+              <h2>Del anuncio al checkout, sin atajos escondidos.</h2>
             </div>
           </div>
-          <a class="btn outline" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">Ver oferta</a>
-        </article>
-      </div>
-    </section>
+          <div class="how">
+            <article>
+              <span>1</span>
+              <h3>Nosotros seleccionamos</h3>
+              <p>Entran productos con volumen de ventas, calificación alta y precio que tiene sentido — criterio editorial, no suposiciones.</p>
+            </article>
+            <article>
+              <span>2</span>
+              <h3>Tú decides aquí</h3>
+              <p>Ficha técnica, pros, contras y valor de referencia. Si no te convence, no hay botón mágico empujando la compra.</p>
+            </article>
+            <article>
+              <span>3</span>
+              <h3>La tienda cierra la compra</h3>
+              <p>El clic abre Mercado Libre, Amazon o Shopee. El envío, el stock y el precio final siempre son de allí.</p>
+            </article>
+          </div>
+        </section>
 
-    <section class="editorial">
-      <div>
-        <p class="eyebrow">Comparativa</p>
-        <h2>¿Qué freidora de aire comprar en 2026?</h2>
-        <p>Britânia BFR50 (5,5 L, familiar) frente a Electrolux EAF15 (3,2 L, compacta). Dos tamaños, dos cálculos, sin relleno de texto.</p>
-        <div class="editorial-products">
-          <span class="editorial-product"><img src="assets/img/airfryer-mid.jpg" alt="Freidora de aire Britânia BFR50" width="40" height="40" loading="lazy" />Britânia BFR50 · R$ 228</span>
-          <span class="editorial-product"><img src="assets/img/airfryer-compact.jpg" alt="Freidora de aire Electrolux EAF15" width="40" height="40" loading="lazy" />Electrolux EAF15 · R$ 269,90</span>
-        </div>
+        <section class="faq">
+          <p class="eyebrow">Dudas</p>
+          <h2>Antes de hacer clic</h2>
+          <details open>
+            <summary>¿Ustedes venden el producto?</summary>
+            <p>No. Somos una vitrina editorial. La compra se realiza en el marketplace, con la política de cambios de la tienda.</p>
+          </details>
+          <details>
+            <summary>¿El precio del sitio es el precio final?</summary>
+            <p>No. Es una referencia consultada en la fecha indicada en cada oferta. El cupón, el envío y el stock cambian en el checkout.</p>
+          </details>
+          <details>
+            <summary>¿Por qué el botón dice “ver oferta”?</summary>
+            <p>Porque el destino es la tienda donde se cierra la compra — el clic solo te lleva hasta allí.</p>
+          </details>
+        </section>
       </div>
-      <a class="btn primary" href="artigo.html">Leer la comparativa</a>
-    </section>
 
-    <section class="ad-slot" aria-label="Publicidad" data-ad-slot-key="homeMobile" data-ad-format="horizontal">
-      <span>Publicidad</span>
-      <small>Espacio para red de display. Actívalo solo después de la aprobación.</small>
-    </section>
-
-    <section class="section" id="ofertas">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Vitrina completa</p>
-          <h2>Más ofertas para explorar</h2>
-        </div>
-      </div>
-      <div class="grid" id="comparativosGrid">
-        <div class="empty">Cargando comparativas…</div>
-      </div>
-    </section>
-
-    <section class="trust-bar" aria-label="Por qué confiar en Achado Agora">
-      <div class="trust-bar-item">
-        <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></span>
-        <div><strong>+2 millones</strong><span>de personas ya ahorraron con nosotros</span></div>
-      </div>
-      <div class="trust-bar-item">
-        <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg></span>
-        <div><strong>100% gratis</strong><span>Compara precios sin pagar nada</span></div>
-      </div>
-      <div class="trust-bar-item">
-        <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg></span>
-        <div><strong>Tiendas confiables</strong><span>Las más grandes y seguras de Brasil</span></div>
-      </div>
-      <div class="trust-bar-item">
-        <span class="trust-bar-icon" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
-        <div><strong>Compras más inteligentes</strong><span>Más ahorro para ti</span></div>
-      </div>
-    </section>
-
-    <section class="ad-slot" aria-label="Publicidad después de los beneficios" data-ad-slot-key="homeMobileAfterTrust" data-ad-format="horizontal">
-      <span>Publicidad</span>
-      <small>Espacio horizontal después de los sellos de confianza.</small>
-    </section>
-
-    <section id="como-funciona">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">Cómo funciona</p>
-          <h2>Del anuncio al checkout, sin atajos escondidos.</h2>
-        </div>
-      </div>
-      <div class="how">
-        <article>
-          <span>1</span>
-          <h3>Nosotros seleccionamos</h3>
-          <p>Entran productos con volumen de ventas, calificación alta y precio que tiene sentido — criterio editorial, no suposiciones.</p>
-        </article>
-        <article>
-          <span>2</span>
-          <h3>Tú decides aquí</h3>
-          <p>Ficha técnica, pros, contras y valor de referencia. Si no te convence, no hay botón mágico empujando la compra.</p>
-        </article>
-        <article>
-          <span>3</span>
-          <h3>La tienda cierra la compra</h3>
-          <p>El clic abre Mercado Libre, Amazon o Shopee. El envío, el stock y el precio final siempre son de allí.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="faq">
-      <p class="eyebrow">Dudas</p>
-      <h2>Antes de hacer clic</h2>
-      <details open>
-        <summary>¿Ustedes venden el producto?</summary>
-        <p>No. Somos una vitrina editorial. La compra se realiza en el marketplace, con la política de cambios de la tienda.</p>
-      </details>
-      <details>
-        <summary>¿El precio del sitio es el precio final?</summary>
-        <p>No. Es una referencia consultada en la fecha indicada en cada oferta. El cupón, el envío y el stock cambian en el checkout.</p>
-      </details>
-      <details>
-        <summary>¿Por qué el botón dice “ver oferta”?</summary>
-        <p>Porque el destino es la tienda donde se cierra la compra — el clic solo te lleva hasta allí.</p>
-      </details>
-    </section>
+      <aside class="ad-slot ad-slot-rail" aria-label="Publicidad lateral derecha" data-ad-slot-key="homeRailRight" data-ad-format="vertical">
+        <span>Publicidad</span>
+        <small>Espacio lateral después del banner.</small>
+      </aside>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -268,7 +214,7 @@
     <div>
       <strong>Sitio</strong>
       <ul>
-        <li><a href="index-mobile.html#ofertas">Ofertas</a></li>
+        <li><a href="index.html#ofertas">Ofertas</a></li>
         <li><a href="comparativos.html">Comparativas</a></li>
         <li><a href="busca.html">Buscar</a></li>
         <li><a href="sobre.html">Método</a></li>
@@ -281,7 +227,6 @@
         <li><a href="privacidade.html">Privacidad</a></li>
         <li><a href="termos.html">Términos</a></li>
         <li><a href="mailto:contato@achadoagora.com.br">contato@achadoagora.com.br</a></li>
-        <li><a href="index.html" onclick="try{localStorage.setItem('aa_view','desktop')}catch(e){}">Versión para computadora</a></li>
       </ul>
     </div>
   </footer>
@@ -300,5 +245,6 @@
 
   <script src="assets/config.js"></script>
   <script src="assets/app.js"></script>
+  <script src="assets/daily-comparisons.js"></script>
 </body>
 </html>

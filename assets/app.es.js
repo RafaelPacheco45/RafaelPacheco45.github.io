@@ -399,7 +399,7 @@
 
   async function renderComparisonsSection() {
     const grid = document.getElementById("comparativosGrid");
-    if (!grid) return;
+    if (!grid || grid.hasAttribute("data-daily-grid")) return;
     try {
       const res = await fetch(assetHref("assets/comparisons-index.json"), { cache: "no-store" });
       if (!res.ok) throw new Error("error al cargar comparativos");
@@ -1098,12 +1098,19 @@
     const btn = document.getElementById("menuBtn");
     const nav = document.getElementById("navLinks");
     const search = document.querySelector(".search-wrap");
-    if (!btn) return;
-    btn.addEventListener("click", () => {
-      const open = nav.classList.toggle("open");
+    if (!btn || !nav) return;
+    const setOpen = open => {
+      nav.classList.toggle("open", open);
       if (search) search.classList.toggle("open", open);
       btn.setAttribute("aria-expanded", String(open));
+    };
+    btn.addEventListener("click", () => setOpen(btn.getAttribute("aria-expanded") !== "true"));
+    nav.addEventListener("click", event => { if (event.target.closest("a")) setOpen(false); });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && btn.getAttribute("aria-expanded") === "true") { setOpen(false); btn.focus(); }
     });
+    document.addEventListener("click", event => { if (!event.target.closest(".topbar")) setOpen(false); });
+    window.matchMedia("(min-width: 901px)").addEventListener("change", () => setOpen(false));
   }
 
   function setupCookie() {

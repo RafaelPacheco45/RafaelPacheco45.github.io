@@ -3,19 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script>
-    (function () {
-      try {
-        var pref = localStorage.getItem("aa_view");
-        var ua = navigator.userAgent || "";
-        var isMobileUA = /Android|iPhone|iPod|IEMobile|BlackBerry|Opera Mini|Windows Phone/i.test(ua);
-        var isTouchNarrow = (("ontouchstart" in window) || navigator.maxTouchPoints > 0) && window.innerWidth <= 820;
-        var wantsMobile = pref ? pref === "mobile" : (isMobileUA || isTouchNarrow);
-        if (wantsMobile) location.replace("index-mobile.html" + location.search + location.hash);
-      } catch (e) {}
-    })();
-  </script>
-  <link rel="alternate" media="only screen and (max-width: 820px)" href="index-mobile.html" />
+<link rel="alternate" media="only screen and (max-width: 820px)" href="index-mobile.html" />
   <meta name="description" content="Achado Agora selects real deals from Mercado Livre, Amazon and Shopee. Objective comparison, reference price and a direct link to the store." />
   <meta name="theme-color" content="#ff5a1f" />
   <meta property="og:title" content="Achado Agora — find the best option to buy" />
@@ -109,64 +97,7 @@
       </aside>
 
       <div class="home-main-lane">
-        <section class="section" id="comparativo-destaque">
-          <div class="compare-head">
-            <div>
-              <p class="eyebrow">Featured comparison</p>
-              <h2>Which iPhone 15 should you buy?</h2>
-              <p>We compared 3 real Mercado Livre listings by price and review score.</p>
-            </div>
-            <a class="compare-more" href="comparativos/qual-iphone-15-comprar-comparativo.html">See full comparison →</a>
-          </div>
-          <div class="compare-grid-h">
-            <article class="compare-card-h rank-1">
-              <span class="compare-rank"><em>1st</em> Best price and score</span>
-              <div class="compare-card-h-body">
-                <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">
-                  <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Blue - Excellent (Refurbished)" width="96" height="96" loading="lazy">
-                </a>
-                <div class="compare-card-h-info">
-                  <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Blue - Excellent (Refurbished)</a></h3>
-                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
-                  <span class="compare-rating">★ <strong>4.7</strong> (186 reviews)</span>
-                  <span class="compare-price">R$ 2.914,83</span>
-                  <span class="compare-best">✓ Lowest price in this comparison</span>
-                </div>
-              </div>
-              <a class="btn primary" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-azul-excelente-recondicionado/p/MLB2000087240" target="_blank" rel="sponsored nofollow noopener">View deal</a>
-            </article>
-            <article class="compare-card-h">
-              <span class="compare-rank"><em>2nd</em> Close alternative</span>
-              <div class="compare-card-h-body">
-                <a class="compare-card-h-media" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">
-                  <img src="https://http2.mlstatic.com/D_NQ_NP_634723-MLA95496999820_102025-O.webp" alt="Apple iPhone 15 128 GB Pink - Excellent (Refurbished)" width="96" height="96" loading="lazy">
-                </a>
-                <div class="compare-card-h-info">
-                  <h3><a href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 128 GB Pink - Excellent (Refurbished)</a></h3>
-                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
-                  <span class="compare-rating">★ <strong>4.6</strong> (163 reviews)</span>
-                  <span class="compare-price">R$ 3.020,51</span>
-                </div>
-              </div>
-              <a class="btn outline" href="https://www.mercadolivre.com.br/apple-iphone-15-128-gb-cor-rosa-excelente-recondicionado/p/MLB2000124164" target="_blank" rel="sponsored nofollow noopener">View deal</a>
-            </article>
-            <article class="compare-card-h">
-              <span class="compare-rank"><em>3rd</em> New and sealed</span>
-              <div class="compare-card-h-body">
-                <a class="compare-card-h-media" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">
-                  <img src="https://http2.mlstatic.com/D_NQ_NP_831434-MLA96401363339_102025-O.webp" alt="Apple iPhone 15 (128 GB) - Blue" width="96" height="96" loading="lazy">
-                </a>
-                <div class="compare-card-h-info">
-                  <h3><a href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">Apple iPhone 15 (128 GB) - Blue</a></h3>
-                  <span class="compare-store"><span class="store-chip store-chip-mercadolivre">ML</span> Mercado Livre</span>
-                  <span class="compare-rating">★ <strong>4.8</strong> (11,862 reviews)</span>
-                  <span class="compare-price">R$ 3.890,89</span>
-                </div>
-              </div>
-              <a class="btn outline" href="https://meli.la/2ZES8UC" target="_blank" rel="sponsored nofollow noopener">View deal</a>
-            </article>
-          </div>
-        </section>
+        <section class="section" id="comparativo-destaque" data-daily-featured></section>
 
         <section class="editorial">
           <div>
@@ -193,7 +124,8 @@
               <h2>More deals to explore</h2>
             </div>
           </div>
-          <div class="grid" id="comparativosGrid">
+          <p data-daily-status role="status" aria-live="polite"></p>
+<div class="grid" id="comparativosGrid" data-daily-grid>
             <div class="empty">Loading comparisons…</div>
           </div>
         </section>
@@ -294,7 +226,6 @@
         <li><a href="privacidade.html">Privacy</a></li>
         <li><a href="termos.html">Terms</a></li>
         <li><a href="mailto:contato@achadoagora.com.br">contato@achadoagora.com.br</a></li>
-        <li><a href="index-mobile.html" onclick="try{localStorage.setItem('aa_view','mobile')}catch(e){}">Mobile version</a></li>
       </ul>
     </div>
   </footer>
@@ -313,5 +244,6 @@
 
   <script src="assets/config.js"></script>
   <script src="assets/app.js"></script>
+  <script src="assets/daily-comparisons.js"></script>
 </body>
 </html>

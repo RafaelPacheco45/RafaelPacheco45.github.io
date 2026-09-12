@@ -16,14 +16,20 @@ const FAMILIES = [
   ["fritadeira", /\b(fritadeiras?|air fryer|airfryer)\b/],
   ["console", /\b(consoles?|playstation|ps[45]|xbox|nintendo switch)\b/],
   ["monitor", /\b(monitores?|monitor)\b/],
+  ["mouse", /\b(mouses?|mouse)\b/],
   ["teclado", /\b(teclados?)\b/],
   ["ssd", /\b(ssd)\b/],
   ["microondas", /\b(microondas|micro ondas)\b/],
   ["aspirador", /\b(aspiradores?|aspirador)\b/],
   ["cafeteira", /\b(cafeteiras?)\b/],
+  ["ventilador", /\b(ventiladores?|ventilador)\b/],
+  ["caixadesom", /\b(caixas? de som|speakers?)\b/],
+  ["liquidificador", /\b(liquidificadores?|liquidificador)\b/],
+  ["panelaeletrica", /\b(panelas? eletricas?)\b/],
+  ["impressora", /\b(impressoras?|impressora)\b/],
   ["fogao", /\b(fogao|fogoes|cooktops?)\b/]
 ];
-const ACCESSORY = /\b(acabamento|adesivo|adaptador|armario|balcao|bandeja|base|bolsa|borracha|botao|cabo|caixa|capacitor|capa|capinha|carregador|case|casinha|cesto|compressor|conserto|controle|curso|display|dobradica|enfeite|evaporador|filtro|forma|fusivel|gabinete|gaveta|grade|ima|iman|infantil|kit|lampada|manual|miniatura|modulo|mochila|motor|nicho|organizador|painel|peca|pecas|pegador|pelicula|placa|playset|porta|portas|pote|prateleira|protetor|puxador|recipiente|refil|rele|reparo|resistencia|rodizio|sensor|suporte|tapete|tampa|tampas|termostato|timer|ventoinha|brinquedo|barbie|boneca)\b/g;
+const ACCESSORY = /\b(acabamento|acoplamento|adaptador|adesivo|armario|arraste|balcao|bandeja|base|bolsa|borracha|botao|cabo|capacitor|capa|capinha|carregador|case|casinha|cesto|copo|compressor|conserto|controle|curso|display|dobradica|enfeite|evaporador|filtro|forma|fusivel|gabinete|gaveta|grade|helice|ima|iman|infantil|jarra|kit|lampada|luminaria|manual|miniatura|modulo|mochila|motor|nicho|organizador|painel|peca|pecas|pegador|pelicula|placa|playset|porta|portas|pote|prateleira|protetor|puxador|recipiente|refil|rele|reparo|resistencia|rodizio|sensor|suporte|tapete|tampa|tampas|termostato|timer|ventoinha|brinquedo|barbie|boneca)\b/g;
 const ACCESSORY_CONTEXT = /\b(compativel|reposicao|avulso|universal)\b|\b(para|p|de|da)\s+(?:a\s+)?(?:geladeiras?|refrigeradores?)\b/;
 const PORTABLE_FRIDGE = /\b(mini|portatil|automotiva|caminhao|motorhome|onibus|van|barco|camping|12v|24v|frigobar)\b/;
 const FRIDGE_DOOR_PRODUCT = /^porta\s+(?:de\s+)?(?:geladeiras?|refrigeradores?)\b/;
@@ -63,6 +69,8 @@ export function isRelevantCandidate(candidate, query) {
       if (!/\b(mini|skincare|cosmeticos|portatil)\b/.test(request)
         && (/\b(skincare|cosmeticos)\b/.test(title) || /\b[1-9]\s*l\b/.test(title))) return false;
     }
+    if (family?.[0] === "ventilador" && /^(?:fio\b|ventilador repelente\b)|\b(para celular|celular|cooler)\b/.test(title)) return false;
+    if (family?.[0] === "liquidificador" && /\b(massa de modelar|play doh|playdoh)\b/.test(title)) return false;
   }
   const expand = (value) => family ? value.replace(family[1], (match) =>
     /iphone|playstation|ps[45]|xbox|nintendo/.test(match) ? `${family[0]} ${match}` : family[0]) : value;
